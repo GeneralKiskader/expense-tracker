@@ -1,0 +1,30 @@
+spring:
+application:
+name: expense-tracker
+
+# ==================== H2 ====================
+h2:
+console:
+enabled: true
+path: /my-h2-admin
+
+datasource:
+url: jdbc:h2:file:./data/expensedb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+driver-class-name: org.h2.Driver
+username: sa
+password:
+
+jpa:
+database-platform: org.hibernate.dialect.H2Dialect
+hibernate:
+ddl-auto: update
+show-sql: true
+
+# ==================== Thymeleaf & MVC ====================
+thymeleaf:
+encoding: UTF-8
+
+mvc:
+format:
+date: yyyy-MM-dd
+date-time: yyyy-MM-dd HH:mm:ss

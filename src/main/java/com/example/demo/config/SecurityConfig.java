@@ -1,7 +1,7 @@
 package com.example.demo.config;
 
 import com.example.demo.service.CustomUserDetailsService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,20 +12,19 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Autowired
-    private CustomUserDetailsService customUserDetailsService;
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // Полностью отключаем Security для h2-console
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.ignoring().requestMatchers("/my-h2-admin/**");
+        return web -> web.ignoring().requestMatchers("/my-h2-admin/**", "/css/**", "/js/**");
     }
 
     @Bean
@@ -48,10 +47,7 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/login")
                         .permitAll()
                 )
-                .userDetailsService(customUserDetailsService)
-                .headers(headers -> headers
-                        .frameOptions(frameOptions -> frameOptions.disable())
-                );
+                .userDetailsService(customUserDetailsService);
 
         return http.build();
     }

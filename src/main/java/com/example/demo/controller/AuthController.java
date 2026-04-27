@@ -1,9 +1,10 @@
-package com.example.demo;
+package com.example.demo.controller;
 
-import com.example.demo.model.User;
+import com.example.demo.dto.UserRegistrationRequestDto;
+import com.example.demo.exception.UserAlreadyExistsException;
 import com.example.demo.service.UserService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -12,28 +13,35 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
+@RequiredArgsConstructor
 public class AuthController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
     @GetMapping("/register")
-    public String showRegistrationForm(Model model) {
-        model.addAttribute("user", new User());
+    public String showRegisterForm(Model model) {
+        model.addAttribute("user", new UserRegistrationRequestDto());
         return "register";
     }
 
     @PostMapping("/register")
-    public String registerUser(@Valid @ModelAttribute("user") User user, BindingResult result, Model model) {
+    public String registerUser(@Valid @ModelAttribute("user") UserRegistrationRequestDto userDto,
+                               BindingResult result, Model model) {
+
         if (result.hasErrors()) {
             return "register";
         }
-        if (userService.findByEmail(user.getEmail()) != null) {
-            model.addAttribute("error", "Пользователь с таким email уже существует");
+
+        try {
+            userService.registerUser(userDto);
+            return "redirect:/login?success";
+        } catch (UserAlreadyExistsException e) {
+            model.addAttribute("error", e.getMessage());
+            return "register";
+        } catch (Exception e) {
+            model.addAttribute("error", "Произошла неизвестная ошибка");
             return "register";
         }
-        userService.save(user);
-        return "redirect:/login?success";
     }
 
     @GetMapping("/login")
