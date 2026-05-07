@@ -29,6 +29,7 @@ public class AuthController {
                                BindingResult result, Model model) {
 
         if (result.hasErrors()) {
+            model.addAttribute("user", userDto);
             return "register";
         }
 
@@ -37,9 +38,11 @@ public class AuthController {
             return "redirect:/login?success";
         } catch (UserAlreadyExistsException e) {
             model.addAttribute("error", e.getMessage());
+            model.addAttribute("user", userDto);
             return "register";
         } catch (Exception e) {
             model.addAttribute("error", "Произошла неизвестная ошибка");
+            model.addAttribute("user", userDto);
             return "register";
         }
     }

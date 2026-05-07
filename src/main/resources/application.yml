@@ -1,30 +1,52 @@
 spring:
-application:
-name: expense-tracker
+  application:
+    name: expense-tracker
 
-# ==================== H2 ====================
-h2:
-console:
-enabled: true
-path: /my-h2-admin
+  profiles:
+    active: dev
 
-datasource:
-url: jdbc:h2:file:./data/expensedb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-driver-class-name: org.h2.Driver
-username: sa
-password:
+---
 
-jpa:
-database-platform: org.hibernate.dialect.H2Dialect
-hibernate:
-ddl-auto: update
-show-sql: true
+spring:
+  config:
+    activate:
+      on-profile: dev
+  h2:
+    console:
+      enabled: true
+      path: /my-h2-admin
+  datasource:
+    url: jdbc:h2:file:./data/expensedb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
 
-# ==================== Thymeleaf & MVC ====================
+---
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:postgresql://postgres:5432/expense_tracker
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
 thymeleaf:
-encoding: UTF-8
+  encoding: UTF-8
 
 mvc:
-format:
-date: yyyy-MM-dd
-date-time: yyyy-MM-dd HH:mm:ss
+  format:
+    date: yyyy-MM-dd
+    date-time: yyyy-MM-dd HH:mm:ss

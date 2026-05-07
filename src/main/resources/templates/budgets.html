@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бюджеты • ExpenseTracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap');
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); }
+        .nav-active { background-color: #27272a; color: white; }
+        .progress-bar { transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-200">
+    <!-- Navigation same as before -->
+    <nav class="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-lg fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-x-8">
+                <div class="flex items-center gap-x-3">
+                    <div class="w-9 h-9 bg-emerald-500 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-wallet text-white text-2xl"></i>
+                    </div>
+                    <span class="font-semibold text-2xl tracking-tighter">Expense<span class="text-emerald-400">Tracker</span></span>
+                </div>
+
+                <div class="hidden md:flex items-center gap-x-1 text-sm">
+                    <a th:href="@{/dashboard}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                        <i class="fa-solid fa-chart-line w-4"></i> <span>Дашборд</span>
+                    </a>
+                    <a th:href="@{/expenses}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                        <i class="fa-solid fa-receipt w-4"></i> <span>Расходы</span>
+                    </a>
+                    <a th:href="@{/budgets}" class="nav-active px-4 py-2 rounded-2xl flex items-center gap-x-2">
+                        <i class="fa-solid fa-chart-pie w-4"></i> <span>Бюджеты</span>
+                    </a>
+                    <a th:href="@{/profile}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                        <i class="fa-solid fa-user w-4"></i> <span>Профиль</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-x-3">
+                <div class="flex items-center gap-x-2 bg-zinc-900 rounded-3xl px-2 py-1.5 pr-5">
+                    <img th:src="@{'https://i.pravatar.cc/32?u=' + ${currentUser.email}}" class="w-8 h-8 rounded-2xl" alt="avatar">
+                    <div class="text-sm font-medium" th:text="${currentUser.firstName}">Иван</div>
+                </div>
+                <a th:href="@{/logout}" class="px-4 py-2 text-sm hover:bg-zinc-900 rounded-2xl flex items-center gap-x-2">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="pt-20 max-w-7xl mx-auto px-6 pb-12">
+        <div class="flex items-end justify-between mb-8">
+            <div>
+                <h1 class="text-4xl font-semibold tracking-tighter">Бюджеты</h1>
+                <p class="text-zinc-400">Планируйте расходы и контролируйте лимиты</p>
+            </div>
+            <button onclick="showAddBudgetModal()" 
+                    class="flex items-center gap-x-3 bg-white text-zinc-950 px-6 py-3 rounded-2xl font-semibold hover:bg-zinc-100 transition-all shadow-xl">
+                <i class="fa-solid fa-plus"></i>
+                <span>Новый бюджет</span>
+            </button>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="glass border border-zinc-800 rounded-3xl p-6">
+                <div class="flex justify-between">
+                    <div>
+                        <div class="text-sm text-zinc-400">Общий бюджет</div>
+                        <div class="text-4xl font-semibold mt-2">85 000 BYN</div>
+                    </div>
+                    <i class="fa-solid fa-wallet text-4xl text-emerald-400"></i>
+                </div>
+                <div class="mt-4 text-xs text-emerald-400">78% использовано</div>
+            </div>
+            <div class="glass border border-zinc-800 rounded-3xl p-6">
+                <div class="flex justify-between">
+                    <div>
+                        <div class="text-sm text-zinc-400">Остаток на месяц</div>
+                        <div class="text-4xl font-semibold mt-2">18 650 BYN</div>
+                    </div>
+                    <i class="fa-solid fa-piggy-bank text-4xl text-blue-400"></i>
+                </div>
+                <div class="mt-4 text-xs text-blue-400">До конца месяца: 12 дней</div>
+            </div>
+            <div class="glass border border-zinc-800 rounded-3xl p-6">
+                <div class="flex justify-between">
+                    <div>
+                        <div class="text-sm text-zinc-400">Бюджетов превышено</div>
+                        <div class="text-4xl font-semibold mt-2 text-red-400">2</div>
+                    </div>
+                    <i class="fa-solid fa-exclamation-triangle text-4xl text-red-400"></i>
+                </div>
+                <div class="mt-4 text-xs text-red-400">Продукты и Развлечения</div>
+            </div>
+        </div>
+
+        <!-- Budgets List with Progress -->
+        <div class="glass border border-zinc-800 rounded-3xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/50">
+                <div class="font-semibold">Бюджеты по категориям</div>
+                <div class="text-xs text-zinc-400">Март 2026</div>
+            </div>
+            
+            <div class="divide-y divide-zinc-800">
+                <!-- Budget Item 1 -->
+                <div class="px-6 py-5 hover:bg-zinc-900/30 transition-colors">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-x-4">
+                            <div class="w-10 h-10 bg-orange-500/10 rounded-2xl flex items-center justify-center">
+                                <i class="fa-solid fa-shopping-cart text-orange-400"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium">Продукты</div>
+                                <div class="text-xs text-zinc-400">Лимит: 25 000 BYN</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-semibold">23 450 BYN <span class="text-xs text-zinc-400">/ 25 000</span></div>
+                            <div class="text-xs text-red-400">94% использовано</div>
+                        </div>
+                    </div>
+                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                        <div class="progress-bar h-2 bg-gradient-to-r from-orange-400 to-red-500 rounded-full" style="width: 94%"></div>
+                    </div>
+                </div>
+
+                <!-- Budget Item 2 -->
+                <div class="px-6 py-5 hover:bg-zinc-900/30 transition-colors">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-x-4">
+                            <div class="w-10 h-10 bg-blue-500/10 rounded-2xl flex items-center justify-center">
+                                <i class="fa-solid fa-bus text-blue-400"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium">Транспорт</div>
+                                <div class="text-xs text-zinc-400">Лимит: 15 000 BYN</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-semibold">9 870 BYN <span class="text-xs text-zinc-400">/ 15 000</span></div>
+                            <div class="text-xs text-emerald-400">66% использовано</div>
+                        </div>
+                    </div>
+                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                        <div class="progress-bar h-2 bg-gradient-to-r from-blue-400 to-emerald-500 rounded-full" style="width: 66%"></div>
+                    </div>
+                </div>
+
+                <!-- More budgets... -->
+                <div class="px-6 py-5 hover:bg-zinc-900/30 transition-colors">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-x-4">
+                            <div class="w-10 h-10 bg-purple-500/10 rounded-2xl flex items-center justify-center">
+                                <i class="fa-solid fa-home text-purple-400"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium">Жильё</div>
+                                <div class="text-xs text-zinc-400">Лимит: 35 000 BYN</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-semibold">28 300 BYN <span class="text-xs text-zinc-400">/ 35 000</span></div>
+                            <div class="text-xs text-emerald-400">81% использовано</div>
+                        </div>
+                    </div>
+                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                        <div class="progress-bar h-2 bg-gradient-to-r from-purple-400 to-emerald-500 rounded-full" style="width: 81%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 text-center text-xs text-zinc-500">
+            Бюджеты обновляются автоматически на основе ваших расходов • Данные за март 2026
+        </div>
+    </div>
+
+    <!-- Add Budget Modal -->
+    <div id="budgetModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center">
+        <div class="glass border border-zinc-700 rounded-3xl w-full max-w-md mx-4 p-8">
+            <div class="flex justify-between items-center mb-6">
+                <div class="font-semibold text-xl">Новый бюджет</div>
+                <button onclick="hideBudgetModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-times text-2xl"></i></button>
+            </div>
+            
+            <form class="space-y-5">
+                <div>
+                    <label class="block text-sm text-zinc-400 mb-1.5">Категория</label>
+                    <select class="w-full bg-zinc-900 border border-zinc-700 px-4 py-3 rounded-2xl">
+                        <option>Продукты</option>
+                        <option>Транспорт</option>
+                        <option>Жильё</option>
+                        <option>Развлечения</option>
+                        <option>Здоровье</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm text-zinc-400 mb-1.5">Месячный лимит (BYN)</label>
+                    <input type="number" value="25000" class="w-full bg-zinc-900 border border-zinc-700 px-4 py-3 rounded-2xl">
+                </div>
+                <div class="flex gap-x-3 pt-4">
+                    <button type="button" onclick="hideBudgetModal()" class="flex-1 py-3 border border-zinc-700 rounded-2xl">Отмена</button>
+                    <button type="button" onclick="addBudget()" class="flex-1 py-3 bg-emerald-600 rounded-2xl font-semibold">Создать бюджет</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showAddBudgetModal() {
+            document.getElementById('budgetModal').classList.remove('hidden');
+            document.getElementById('budgetModal').classList.add('flex');
+        }
+        function hideBudgetModal() {
+            const modal = document.getElementById('budgetModal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+        function addBudget() {
+            alert('Бюджет успешно создан! (демо)');
+            hideBudgetModal();
+            // В реальном проекте здесь будет AJAX запрос
+        }
+    </script>
+</body>
+</html>

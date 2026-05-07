@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/expense_tracker
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update          # автоматически создаёт/обновляет таблицы
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  thymeleaf:
+    encoding: UTF-8
+    cache: false                # удобно при разработке
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    com.example.demo: DEBUG

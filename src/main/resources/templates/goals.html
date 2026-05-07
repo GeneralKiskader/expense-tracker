@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Финансовые цели • ExpenseTracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap');
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); }
+        .nav-active { background-color: #27272a; color: white; }
+        .goal-card { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .goal-card:hover { transform: translateY(-4px); }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-200">
+    <!-- Navigation -->
+    <nav class="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-lg fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-x-8">
+                <div class="flex items-center gap-x-3">
+                    <div class="w-9 h-9 bg-emerald-500 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-wallet text-white text-2xl"></i>
+                    </div>
+                    <span class="font-semibold text-2xl tracking-tighter">ExpenseTracker</span>
+                </div>
+                <div class="hidden md:flex items-center gap-x-1 text-sm">
+                    <a th:href="@{/dashboard}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                        <i class="fa-solid fa-chart-line w-4"></i> <span>Дашборд</span>
+                    </a>
+                    <a th:href="@{/expenses}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                        <i class="fa-solid fa-receipt w-4"></i> <span>Расходы</span>
+                    </a>
+                    <a th:href="@{/reports}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                        <i class="fa-solid fa-chart-bar w-4"></i> <span>Отчёты</span>
+                    </a>
+                    <a th:href="@{/goals}" class="nav-active px-4 py-2 rounded-2xl flex items-center gap-x-2">
+                        <i class="fa-solid fa-bullseye w-4"></i> <span>Цели</span>
+                    </a>
+                </div>
+            </div>
+            <div class="flex items-center gap-x-3">
+                <div class="flex items-center gap-x-2 bg-zinc-900 rounded-3xl px-2 py-1.5 pr-5">
+                    <img th:src="@{'https://i.pravatar.cc/32?u=' + ${currentUser.email}}" class="w-8 h-8 rounded-2xl" alt="avatar">
+                    <div class="text-sm font-medium" th:text="${currentUser.firstName}">Иван</div>
+                </div>
+                <a th:href="@{/logout}" class="px-4 py-2 text-sm hover:bg-zinc-900 rounded-2xl flex items-center gap-x-2">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="pt-20 max-w-7xl mx-auto px-6 pb-12">
+        <div class="flex items-end justify-between mb-8">
+            <div>
+                <h1 class="text-4xl font-semibold tracking-tighter">Мои цели</h1>
+                <p class="text-zinc-400">Ставь цели и следи за прогрессом накоплений</p>
+            </div>
+            <button onclick="showAddGoalModal()" class="flex items-center gap-x-3 bg-white text-zinc-950 px-6 py-3 rounded-2xl font-semibold hover:bg-zinc-100 transition-all shadow-xl">
+                <i class="fa-solid fa-plus"></i>
+                <span>Новая цель</span>
+            </button>
+        </div>
+
+        <!-- Active Goals -->
+        <div class="grid md:grid-cols-2 gap-6 mb-12">
+            <!-- Goal 1: New Car -->
+            <div class="goal-card glass border border-zinc-800 rounded-3xl p-8">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="flex items-center gap-x-3">
+                            <div class="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center">
+                                <i class="fa-solid fa-car text-blue-400 text-2xl"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-2xl">Новая машина</div>
+                                <div class="text-xs text-zinc-400">Цель: 1 200 000 BYN</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-3xl font-semibold text-emerald-400">68%</div>
+                        <div class="text-xs text-zinc-400">816 000 BYN накоплено</div>
+                    </div>
+                </div>
+                
+                <div class="mt-8">
+                    <div class="flex justify-between text-xs mb-1 text-zinc-400">
+                        <div>Прогресс</div>
+                        <div>816 000 / 1 200 000</div>
+                    </div>
+                    <div class="h-4 bg-zinc-800 rounded-full overflow-hidden">
+                        <div class="h-4 bg-gradient-to-r from-blue-400 to-emerald-500 rounded-full" style="width: 68%"></div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex items-center justify-between text-sm">
+                    <div class="text-zinc-400">Осталось: <span class="font-semibold text-white">384 000 BYN</span></div>
+                    <div class="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-2xl text-xs">8 месяцев</div>
+                </div>
+            </div>
+
+            <!-- Goal 2: Vacation -->
+            <div class="goal-card glass border border-zinc-800 rounded-3xl p-8">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="flex items-center gap-x-3">
+                            <div class="w-12 h-12 bg-pink-500/10 rounded-2xl flex items-center justify-center">
+                                <i class="fa-solid fa-plane text-pink-400 text-2xl"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-2xl">Отпуск в Италии</div>
+                                <div class="text-xs text-zinc-400">Цель: 280 000 BYN</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-3xl font-semibold text-emerald-400">92%</div>
+                        <div class="text-xs text-zinc-400">257 600 BYN накоплено</div>
+                    </div>
+                </div>
+                
+                <div class="mt-8">
+                    <div class="flex justify-between text-xs mb-1 text-zinc-400">
+                        <div>Прогресс</div>
+                        <div>257 600 / 280 000</div>
+                    </div>
+                    <div class="h-4 bg-zinc-800 rounded-full overflow-hidden">
+                        <div class="h-4 bg-gradient-to-r from-pink-400 to-emerald-500 rounded-full" style="width: 92%"></div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex items-center justify-between text-sm">
+                    <div class="text-zinc-400">Осталось: <span class="font-semibold text-white">22 400 BYN</span></div>
+                    <div class="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-2xl text-xs">2 месяца</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center text-xs text-zinc-500">Цели обновляются автоматически при каждом сохранении расходов • Следующая цель: Новая квартира (15%)</div>
+    </div>
+
+    <!-- Add Goal Modal -->
+    <div id="goalModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center">
+        <div class="glass border border-zinc-700 rounded-3xl w-full max-w-md mx-4 p-8">
+            <div class="flex justify-between mb-6">
+                <div class="font-semibold text-xl">Новая финансовая цель</div>
+                <button onclick="hideGoalModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-times text-2xl"></i></button>
+            </div>
+            
+            <form class="space-y-5">
+                <div>
+                    <label class="block text-sm text-zinc-400 mb-1.5">Название цели</label>
+                    <input type="text" value="Новый ноутбук" class="w-full bg-zinc-900 border border-zinc-700 px-4 py-3 rounded-2xl">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-zinc-400 mb-1.5">Сумма цели (BYN)</label>
+                        <input type="number" value="150000" class="w-full bg-zinc-900 border border-zinc-700 px-4 py-3 rounded-2xl">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-zinc-400 mb-1.5">Срок (месяцев)</label>
+                        <input type="number" value="6" class="w-full bg-zinc-900 border border-zinc-700 px-4 py-3 rounded-2xl">
+                    </div>
+                </div>
+                <div class="flex gap-x-3 pt-4">
+                    <button type="button" onclick="hideGoalModal()" class="flex-1 py-3 border border-zinc-700 rounded-2xl">Отмена</button>
+                    <button type="button" onclick="addGoal()" class="flex-1 py-3 bg-emerald-600 rounded-2xl font-semibold">Создать цель</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showAddGoalModal() {
+            document.getElementById('goalModal').classList.remove('hidden');
+            document.getElementById('goalModal').classList.add('flex');
+        }
+        function hideGoalModal() {
+            const modal = document.getElementById('goalModal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+        function addGoal() {
+            alert('Цель успешно создана! (демо версия)');
+            hideGoalModal();
+        }
+    </script>
+</body>
+</html>

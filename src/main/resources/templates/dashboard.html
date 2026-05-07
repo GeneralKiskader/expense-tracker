@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дашборд • ExpenseTracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap');
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); }
+        .stat-card { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .stat-card:hover { transform: translateY(-4px); }
+        .expense-row { transition: all 0.2s ease; }
+        .expense-row:hover { background-color: #27272a; }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-200">
+    <!-- Top Navigation -->
+    <nav class="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-lg fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-x-3">
+                <div class="w-9 h-9 bg-emerald-500 rounded-2xl flex items-center justify-center">
+                    <i class="fa-solid fa-wallet text-white text-2xl"></i>
+                </div>
+                <div>
+                    <span class="font-semibold text-2xl tracking-tighter">Expense</span>
+                    <span class="font-semibold text-2xl tracking-tighter text-emerald-400">Tracker</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-x-4">
+                <div class="flex items-center gap-x-2 bg-zinc-900 rounded-3xl px-2 py-1.5">
+                    <img th:src="@{/images/avatar.png}" class="w-8 h-8 rounded-2xl object-cover" alt="avatar" 
+                         onerror="this.src='https://i.pravatar.cc/32?u=' + [[${currentUser.email}]]">
+                    <div class="pr-3">
+                        <div class="text-sm font-medium" th:text="${currentUser.firstName + ' ' + currentUser.lastName}">Иван Иванов</div>
+                        <div class="text-[10px] text-emerald-400 -mt-0.5" th:text="${currentUser.role}">USER</div>
+                    </div>
+                </div>
+
+                <a th:href="@{/logout}" class="flex items-center gap-x-2 px-4 py-2 text-sm hover:bg-zinc-900 rounded-3xl transition-colors">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                    <span>Выйти</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="pt-16 max-w-7xl mx-auto px-6 pb-12">
+        <!-- Header -->
+        <div class="flex items-end justify-between mb-8">
+            <div>
+                <h1 class="text-4xl font-semibold tracking-tighter">Добро пожаловать, <span th:text="${currentUser.firstName}">Иван</span>!</h1>
+                <p class="text-zinc-400 mt-1">Вот как выглядят ваши финансы сегодня</p>
+            </div>
+            <a th:href="@{/expenses/add}" 
+               class="flex items-center gap-x-3 bg-white text-zinc-950 hover:bg-zinc-100 transition-all px-6 py-3 rounded-3xl font-semibold shadow-xl shadow-emerald-500/20">
+                <i class="fa-solid fa-plus"></i>
+                <span>Добавить расход</span>
+            </a>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Total -->
+            <div class="stat-card glass border border-zinc-800 rounded-3xl p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-sm text-zinc-400">Всего потрачено</div>
+                        <div class="text-4xl font-semibold mt-3 tracking-tighter"
+                             th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT')} + ' BYN'">0 BYN</div>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-wallet text-emerald-400 text-3xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Count -->
+            <div class="stat-card glass border border-zinc-800 rounded-3xl p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-sm text-zinc-400">Количество расходов</div>
+                        <div class="text-4xl font-semibold mt-3 tracking-tighter" th:text="${expenses.size()}">0</div>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-receipt text-blue-400 text-3xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Average -->
+            <div class="stat-card glass border border-zinc-800 rounded-3xl p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-sm text-zinc-400">Средний расход</div>
+                        <div class="text-4xl font-semibold mt-3 tracking-tighter"
+                             th:text="${#numbers.formatDecimal(average, 0, 'COMMA', 0, 'POINT')} + ' BYN'">0 BYN</div>
+                    </div>
+                    <div class="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-chart-line text-amber-400 text-3xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <!-- Charts -->
+            <div class="lg:col-span-3 glass border border-zinc-800 rounded-3xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <div class="font-semibold">Динамика расходов</div>
+                        <div class="text-xs text-zinc-400">Последние 30 дней</div>
+                    </div>
+                    <div class="flex gap-x-2 text-xs">
+                        <div class="px-3 py-1 bg-zinc-900 rounded-2xl">30 дней</div>
+                        <div class="px-3 py-1 hover:bg-zinc-900 rounded-2xl cursor-pointer">90 дней</div>
+                    </div>
+                </div>
+                <div class="h-80">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Categories Pie -->
+            <div class="lg:col-span-2 glass border border-zinc-800 rounded-3xl p-6">
+                <div class="font-semibold mb-4">Расходы по категориям</div>
+                <div class="h-80 flex items-center justify-center">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Expenses -->
+        <div class="mt-8">
+            <div class="flex items-center justify-between mb-4">
+                <div class="font-semibold text-xl">Последние расходы</div>
+                <a th:href="@{/expenses}" class="text-emerald-400 hover:text-emerald-300 text-sm flex items-center gap-x-1">
+                    Смотреть все <i class="fa-solid fa-arrow-right text-xs"></i>
+                </a>
+            </div>
+
+            <div class="glass border border-zinc-800 rounded-3xl overflow-hidden">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-zinc-800 text-xs text-zinc-400">
+                            <th class="px-6 py-4 text-left font-normal">Дата</th>
+                            <th class="px-6 py-4 text-left font-normal">Категория</th>
+                            <th class="px-6 py-4 text-left font-normal">Описание</th>
+                            <th class="px-6 py-4 text-right font-normal">Сумма</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="expense : ${expenses}" class="expense-row border-b border-zinc-800 last:border-0">
+                            <td class="px-6 py-4 text-sm" th:text="${#temporals.format(expense.date, 'dd MMM')}">12 янв</td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-3 py-1 rounded-2xl text-xs font-medium"
+                                      th:classappend="${expense.category == 'Продукты'} ? 'bg-orange-500/10 text-orange-400' : 
+                                                       (${expense.category == 'Транспорт'} ? 'bg-blue-500/10 text-blue-400' : 'bg-zinc-700 text-zinc-300')"
+                                      th:text="${expense.category}">Продукты</span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-zinc-400" th:text="${expense.description}">Покупка в Пятёрочке</td>
+                            <td class="px-6 py-4 text-right font-medium" th:text="${#numbers.formatDecimal(expense.amount, 0, 'COMMA', 0, 'POINT')} + ' BYN'">2 340 BYN</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        function initializeCharts() {
+            // Trend Chart (динамический)
+            const trendLabels = /*[[${trendLabels}]]*/ ['Нет данных'];
+            const trendData = /*[[${trendData}]]*/ [0];
+
+            new Chart(document.getElementById('trendChart'), {
+                type: 'line',
+                data: {
+                    labels: trendLabels.length > 0 ? trendLabels : ['Нет данных'],
+                    datasets: [{
+                        label: 'Расходы (BYN)',
+                        data: trendData.length > 0 ? trendData : [0],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: '#27272a' }, ticks: { color: '#71717a' } },
+                        x: { grid: { color: '#27272a' }, ticks: { color: '#71717a' } }
+                    }
+                }
+            });
+
+            // Category Pie (динамический)
+            const categoryLabels = /*[[${categoryNames}]]*/ ['Нет данных'];
+            const categoryData = /*[[${categoryAmounts}]]*/ [0];
+            const categoryColors = ['#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b', '#14b8a6'];
+
+            new Chart(document.getElementById('categoryChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: categoryLabels.length > 0 ? categoryLabels : ['Нет данных'],
+                    datasets: [{
+                        data: categoryData.length > 0 ? categoryData : [0],
+                        backgroundColor: categoryColors.slice(0, categoryLabels.length),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#a1a1aa', padding: 15 } }
+                    }
+                }
+            });
+        }
+
+        window.onload = initializeCharts;
+    </script>
+</body>
+</html>

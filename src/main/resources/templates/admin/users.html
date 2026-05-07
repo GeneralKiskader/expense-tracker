@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Управление пользователями • Админ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="bg-zinc-950 text-zinc-200">
+    <div class="max-w-6xl mx-auto px-6 py-8">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-3xl font-semibold">Управление пользователями</h1>
+                <p class="text-zinc-400">Всего пользователей: <span th:text="${users.size()}">42</span></p>
+            </div>
+            <a th:href="@{/dashboard}" class="text-emerald-400 hover:underline">← Назад к дашборду</a>
+        </div>
+
+        <div class="glass border border-zinc-800 rounded-3xl overflow-hidden">
+            <table class="w-full">
+                <thead class="bg-zinc-900">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-sm font-normal text-zinc-400">Пользователь</th>
+                        <th class="px-6 py-4 text-left text-sm font-normal text-zinc-400">Email</th>
+                        <th class="px-6 py-4 text-left text-sm font-normal text-zinc-400">Роль</th>
+                        <th class="px-6 py-4 text-right text-sm font-normal text-zinc-400">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="user : ${users}" class="border-t border-zinc-800 hover:bg-zinc-900/50">
+                        <td class="px-6 py-4">
+                            <div class="font-medium" th:text="${user.firstName + ' ' + user.lastName}">Иван Иванов</div>
+                        </td>
+                        <td class="px-6 py-4 text-zinc-400" th:text="${user.email}">ivan@example.com</td>
+                        <td class="px-6 py-4">
+                            <form th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post" class="flex items-center gap-x-2">
+                                <select name="role" class="bg-zinc-900 border border-zinc-700 rounded-2xl px-3 py-1 text-sm focus:outline-none focus:border-emerald-500">
+                                    <option th:each="r : ${roles}" th:value="${r}" th:selected="${r == user.role}" th:text="${r}">USER</option>
+                                </select>
+                                <button type="submit" class="px-3 py-1 text-xs bg-emerald-600 hover:bg-emerald-500 rounded-2xl">Сохранить</button>
+                            </form>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <form th:action="@{/admin/users/{id}/delete(id=${user.id})}" method="post" onsubmit="return confirm('Удалить пользователя?')">
+                                <button type="submit" class="text-red-400 hover:text-red-500 px-3 py-1 text-sm">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

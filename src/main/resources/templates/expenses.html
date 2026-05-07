@@ -1,75 +1,359 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Мои расходы</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои расходы • ExpenseTracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap');
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); }
+        .expense-row { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .expense-row:hover { background-color: #27272a; transform: translateX(4px); }
+        .modal { animation: modalPop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes modalPop { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .nav-active { background-color: #27272a; color: white; }
+    </style>
 </head>
-<body class="container mt-4">
-<!-- НАВБАР (добавь в начало body каждого шаблона) -->
-<!-- НАВБАР -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-    <div class="container">
-        <a class="navbar-brand" href="/expenses">💰 Мои расходы</a>
-        <div class="navbar-nav ms-auto">
-            <span class="navbar-text me-3">
-                Привет, <strong th:text="${currentUser.firstName} + ' ' + ${currentUser.lastName}"></strong>!
-            </span>
+<body class="bg-zinc-950 text-zinc-200">
+    <!-- Top Navigation -->
+    <nav class="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-lg fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-x-8">
+                <!-- Logo -->
+                <div class="flex items-center gap-x-3">
+                    <div class="w-9 h-9 bg-emerald-500 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-wallet text-white text-2xl"></i>
+                    </div>
+                    <span class="font-semibold text-2xl tracking-tighter">Expense<span class="text-emerald-400">Tracker</span></span>
+                </div>
 
-            <!-- ВЫХОД через форму (POST) -->
-            <form th:action="@{/logout}" method="post" style="display: inline;">
-                <button type="submit" class="btn btn-outline-light btn-sm">Выйти</button>
-            </form>
+                <!-- Navigation -->
+                <div class="hidden md:flex items-center gap-x-1 text-sm">
+                    <a th:href="@{/dashboard}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                        <i class="fa-solid fa-chart-line w-4"></i>
+                        <span>Дашборд</span>
+                    </a>
+                    <a th:href="@{/expenses}" class="nav-active px-4 py-2 rounded-2xl flex items-center gap-x-2">
+                        <i class="fa-solid fa-receipt w-4"></i>
+                        <span>Расходы</span>
+                    </a>
+                    <a th:if="${currentUser.role.name() == 'ADMIN'}" th:href="@{/admin/users}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                        <i class="fa-solid fa-users w-4"></i>
+                        <span>Пользователи</span>
+                    </a>
+                    <a th:if="${currentUser.role.name() == 'ADMIN' or currentUser.role.name() == 'MODERATOR'}" th:href="@{/moderator/expenses}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                        <i class="fa-solid fa-globe w-4"></i>
+                        <span>Все расходы</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-x-3">
+                <div class="flex items-center gap-x-2 bg-zinc-900 rounded-3xl px-2 py-1.5 pr-5">
+                    <img th:src="@{'https://i.pravatar.cc/32?u=' + ${currentUser.email}}" class="w-8 h-8 rounded-2xl" alt="avatar">
+                    <div>
+                        <div class="text-sm font-medium" th:text="${currentUser.firstName}">Иван</div>
+                        <div class="text-[10px] text-emerald-400 -mt-0.5" th:text="${currentUser.role}">USER</div>
+                    </div>
+                </div>
+                <a th:href="@{/logout}" class="px-4 py-2 text-sm hover:bg-zinc-900 rounded-2xl flex items-center gap-x-2 transition-colors">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="pt-20 max-w-7xl mx-auto px-6 pb-12">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-y-4 mb-8">
+            <div>
+                <h1 class="text-4xl font-semibold tracking-tighter">Мои расходы</h1>
+                <p class="text-emerald-400 italic text-sm mt-1">"Каждый записанный рубль — это шаг к финансовой свободе."</p>
+                <p class="text-zinc-400 mt-1">Всего записей: <span th:text="${expenses.size()}" class="font-medium text-white">87</span></p>
+            </div>
+            
+            <div class="flex items-center gap-x-3">
+                <!-- Search -->
+                <div class="relative w-80">
+                    <input type="text" id="searchInput" placeholder="Поиск по описанию или категории..." 
+                           class="w-full bg-zinc-900 border border-zinc-700 pl-10 py-2.5 rounded-2xl text-sm focus:outline-none focus:border-emerald-500">
+                    <i class="fa-solid fa-search absolute left-4 top-3.5 text-zinc-500"></i>
+                </div>
+                
+                <button onclick="showAddModal()"
+                        class="flex items-center gap-x-3 bg-white text-zinc-950 hover:bg-zinc-100 transition-all px-5 py-2.5 rounded-2xl font-semibold text-sm shadow-xl shadow-emerald-500/20">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Добавить расход</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="glass border border-zinc-800 rounded-3xl p-5">
+                <div class="text-xs text-zinc-400">Общая сумма</div>
+                <div class="text-3xl font-semibold mt-1 tracking-tighter" th:text="${#numbers.formatDecimal(total != null ? total : 0, 0, 'COMMA', 0, 'POINT')} + ' BYN'">124 580 BYN</div>
+            </div>
+            <div class="glass border border-zinc-800 rounded-3xl p-5">
+                <div class="text-xs text-zinc-400">В этом месяце</div>
+                <div class="text-3xl font-semibold mt-1 tracking-tighter" 
+                     th:text="${#numbers.formatDecimal(monthlyTotal != null ? monthlyTotal : 0, 0, 'COMMA', 0, 'POINT')} + ' BYN'">23 450 BYN</div>
+            </div>
+            <div class="glass border border-zinc-800 rounded-3xl p-5">
+                <div class="text-xs text-zinc-400">Средний чек</div>
+                <div class="text-3xl font-semibold mt-1 tracking-tighter" 
+                     th:text="${#numbers.formatDecimal(avgCheck != null ? avgCheck : 0, 0, 'COMMA', 0, 'POINT')} + ' BYN'">1 432 BYN</div>
+            </div>
+            <div class="glass border border-zinc-800 rounded-3xl p-5">
+                <div class="text-xs text-zinc-400">Топ категория</div>
+                <div class="text-3xl font-semibold mt-1 tracking-tighter" th:text="${topCategory}">Продукты</div>
+            </div>
+        </div>
+
+        <!-- Expenses Table -->
+        <div class="glass border border-zinc-800 rounded-3xl overflow-hidden">
+            <table class="w-full" id="expensesTable">
+                <thead>
+                    <tr class="border-b border-zinc-800 bg-zinc-900/50 text-xs text-zinc-400">
+                        <th class="px-6 py-4 text-left font-normal">Дата</th>
+                        <th class="px-6 py-4 text-left font-normal">Категория</th>
+                        <th class="px-6 py-4 text-left font-normal">Описание</th>
+                        <th class="px-6 py-4 text-right font-normal">Сумма</th>
+                        <th class="px-6 py-4 w-20"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="expense : ${expenses}" class="expense-row border-b border-zinc-800 last:border-0">
+                        <td class="px-6 py-4 text-sm text-zinc-400" th:text="${#temporals.format(expense.date, 'dd MMM yyyy')}">12 янв 2026</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-3.5 py-1 rounded-2xl text-xs font-medium"
+                                  th:classappend="${expense.category == 'Продукты'} ? 'bg-orange-500/10 text-orange-400' : 
+                                                   (${expense.category == 'Транспорт'} ? 'bg-blue-500/10 text-blue-400' : 
+                                                   (${expense.category == 'Жильё'} ? 'bg-purple-500/10 text-purple-400' : 
+                                                   (${expense.category == 'Развлечения'} ? 'bg-pink-500/10 text-pink-400' : 'bg-zinc-700 text-zinc-300')))"
+                                  th:text="${expense.category}">Продукты</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm" th:text="${expense.description}">Покупка продуктов в Пятёрочке</td>
+                        <td class="px-6 py-4 text-right font-semibold" th:text="${#numbers.formatDecimal(expense.amount, 0, 'COMMA', 0, 'POINT')} + ' BYN'">2 340 BYN</td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center justify-end gap-x-1">
+                                <a th:href="@{/expenses/edit/{id}(id=${expense.id})}" 
+                                   class="p-2 hover:bg-zinc-800 rounded-xl text-zinc-400 hover:text-white transition-colors">
+                                    <i class="fa-solid fa-edit text-sm"></i>
+                                </a>
+                                <button onclick="confirmDelete(${expense.id}, '${#strings.escapeXml(expense.description)}')"
+                                        class="p-2 hover:bg-red-500/10 rounded-xl text-red-400 hover:text-red-500 transition-colors">
+                                    <i class="fa-solid fa-trash text-sm"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Improved Empty State -->
+                    <tr th:if="${expenses.empty}">
+                        <td colspan="5" class="px-6 py-20 text-center">
+                            <div class="flex flex-col items-center max-w-sm mx-auto">
+                                <div class="w-24 h-24 bg-zinc-800 rounded-full flex items-center justify-center mb-6">
+                                    <i class="fa-solid fa-receipt text-5xl text-zinc-500"></i>
+                                </div>
+                                
+                                <div class="text-2xl font-semibold tracking-tight">Здесь пока пусто</div>
+                                
+                                <div class="mt-3 text-zinc-400 text-center">
+                                    Добавь свой первый расход — и мы начнём строить твою финансовую картину
+                                </div>
+                                
+                                <div class="mt-8">
+                                    <button onclick="showAddModal()" 
+                                            class="group flex items-center gap-x-3 px-8 py-3.5 bg-white text-zinc-950 rounded-2xl font-semibold hover:bg-zinc-100 transition-all">
+                                        <i class="fa-solid fa-plus group-hover:rotate-90 transition-transform"></i>
+                                        <span>Добавить первый расход</span>
+                                    </button>
+                                </div>
+                                
+                                <div class="mt-6 text-xs text-zinc-500">
+                                    Или импортируй транзакции из банка на странице <a th:href="@{/bank}" class="text-emerald-400 hover:underline">Банк</a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
-</nav>
-<h1>Расходы</h1>
 
-<div class="row">
-    <div class="col-md-8">
-        <a href="/expenses/add" class="btn btn-primary mb-3">+ Добавить расход</a>
-        <table class="table table-striped">
-            <thead>
-            <tr>
-                <th>Дата</th>
-                <th>Категория</th>
-                <th>Описание</th>
-                <th class="text-end">Сумма</th>
-                <th>Действия</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="exp : ${expenses}">
-                <td th:text="${exp.date}"></td>
-                <td th:text="${exp.category}"></td>
-                <td th:text="${exp.description}"></td>
-                <td class="text-end" th:text="${exp.amount} + ' BYN'"></td>
-                <td>
-                    <a th:href="@{/expenses/edit/{id}(id=${exp.id})}" class="btn btn-sm btn-warning">Изменить</a>
-                    <a th:href="@{/expenses/delete/{id}(id=${exp.id})}" class="btn btn-sm btn-danger" onclick="return confirm('Удалить?')">Удалить</a>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
+    <!-- Add/Edit Modal -->
+    <div id="addModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center">
+        <div class="modal glass border border-zinc-700 rounded-3xl w-full max-w-md mx-4 shadow-2xl">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="font-semibold text-xl">Новый расход</div>
+                    <button onclick="hideAddModal()" class="text-zinc-400 hover:text-white p-2 -mr-2">
+                        <i class="fa-solid fa-times text-xl"></i>
+                    </button>
+                </div>
 
-    <!-- Статистика -->
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5>Итого потрачено: <span class="text-danger" th:text="${total} + ' BYN'"></span></h5>
-                <h6>По категориям:</h6>
-                <ul class="list-group" th:each="entry : ${byCategory}">
-                    <li class="list-group-item d-flex justify-content-between">
-                        <span th:text="${entry.key}"></span>
-                        <span th:text="${entry.value} + ' BYN'"></span>
-                    </li>
-                </ul>
+                <form th:action="@{/expenses}" method="post" class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-400 mb-1.5">Дата</label>
+                        <input type="date" name="date" required value="2026-01-15"
+                               class="w-full bg-zinc-900 border border-zinc-700 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:border-emerald-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-400 mb-1.5">Категория</label>
+                        <select name="category" required class="w-full bg-zinc-900 border border-zinc-700 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:border-emerald-500">
+                            <option value="Продукты">Продукты</option>
+                            <option value="Транспорт">Транспорт</option>
+                            <option value="Жильё">Жильё</option>
+                            <option value="Развлечения">Развлечения</option>
+                            <option value="Здоровье">Здоровье</option>
+                            <option value="Одежда">Одежда</option>
+                            <option value="Другое">Другое</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-400 mb-1.5">Сумма (BYN)</label>
+                        <div class="relative">
+                            <input type="number" name="amount" step="0.01" min="0.01" required placeholder="0.00"
+                                   class="w-full bg-zinc-900 border border-zinc-700 pl-4 pr-12 py-3 rounded-2xl text-sm focus:outline-none focus:border-emerald-500">
+                            <div class="absolute right-4 top-3.5 text-zinc-500">BYN</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-400 mb-1.5">Описание (необязательно)</label>
+                        <input type="text" name="description" placeholder="Например: Обед в кафе"
+                               class="w-full bg-zinc-900 border border-zinc-700 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:border-emerald-500">
+                    </div>
+
+                    <div class="flex gap-x-3 pt-4">
+                        <button type="button" onclick="hideAddModal()"
+                                class="flex-1 py-3 border border-zinc-700 hover:bg-zinc-900 rounded-2xl font-medium transition-colors">Отмена</button>
+                        <button type="submit"
+                                class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-2xl font-semibold transition-colors">Сохранить расход</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#expensesTable tbody tr');
+            
+            rows.forEach(row => {
+                if (row.cells.length < 3) return;
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Modal functions
+        function showAddModal() {
+            document.getElementById('addModal').classList.remove('hidden');
+            document.getElementById('addModal').classList.add('flex');
+        }
+        
+        function hideAddModal() {
+            const modal = document.getElementById('addModal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        // Close modal on escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('addModal');
+                if (!modal.classList.contains('hidden')) hideAddModal();
+            }
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('addModal').addEventListener('click', function(e) {
+            if (e.target === this) hideAddModal();
+        });
+
+        // Пример использования Toast (можно удалить после тестирования)
+        // showToast('Расход успешно добавлен!', 'success');
+    </script>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[80] flex items-center justify-center">
+        <div class="glass border border-zinc-700 rounded-3xl w-full max-w-md mx-4 p-8">
+            <div class="text-center">
+                <div class="mx-auto w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
+                    <i class="fa-solid fa-trash text-red-400 text-3xl"></i>
+                </div>
+                
+                <div class="text-2xl font-semibold">Удалить расход?</div>
+                <div class="mt-3 text-zinc-400" id="deleteDescription">Это действие нельзя отменить</div>
+                
+                <div class="mt-8 flex gap-x-4">
+                    <button onclick="hideDeleteModal()" 
+                            class="flex-1 py-3 border border-zinc-700 hover:bg-zinc-900 rounded-2xl font-medium transition-colors">
+                        Отмена
+                    </button>
+                    <button onclick="performDelete()" 
+                            class="flex-1 py-3 bg-red-600 hover:bg-red-500 rounded-2xl font-semibold transition-colors">
+                        Удалить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div th:replace="~{fragments/toast :: .}"></div>
+
+    <script>
+        let expenseToDelete = null;
+
+        function confirmDelete(id, description) {
+            expenseToDelete = id;
+            document.getElementById('deleteDescription').innerHTML = 
+                `Вы уверены, что хотите удалить <strong>"${description}"</strong>?`;
+            document.getElementById('deleteModal').classList.remove('hidden');
+            document.getElementById('deleteModal').classList.add('flex');
+        }
+
+        function hideDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            expenseToDelete = null;
+        }
+
+        function performDelete() {
+            if (!expenseToDelete) return;
+            
+            // В реальном приложении здесь будет AJAX или форма
+            // Пока просто редирект (можно улучшить до fetch + перезагрузки)
+            window.location.href = `/expenses/delete/${expenseToDelete}`;
+            
+            // Если используешь AJAX:
+            // fetch(`/expenses/delete/${expenseToDelete}`, { method: 'GET' })
+            //     .then(() => {
+            //         showToast('Расход успешно удалён', 'success');
+            //         // Обновить таблицу без перезагрузки (будущая оптимизация)
+            //     });
+        }
+
+        // Закрытие модалки по Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const deleteModal = document.getElementById('deleteModal');
+                if (!deleteModal.classList.contains('hidden')) {
+                    hideDeleteModal();
+                }
+            }
+        });
+    </script>
 </body>
 </html>

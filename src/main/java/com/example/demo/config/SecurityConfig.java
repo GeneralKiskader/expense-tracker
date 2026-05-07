@@ -24,30 +24,36 @@ public class SecurityConfig {
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.ignoring().requestMatchers("/my-h2-admin/**", "/css/**", "/js/**");
+        return web -> web.ignoring()
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/my-h2-admin/**");
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/register", "/login", "/css/**", "/js/**", "/images/**").permitAll()
+                        // Явно разрешаем регистрацию и логин
+                        .requestMatchers("/register", "/login", "/").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                         .anyRequest().authenticated()
-                )
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/my-h2-admin/**")
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/expenses", true)
+                        .defaultSuccessUrl("/expenses", true)   // после логина сразу на расходы
                         .permitAll()
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login")
+                        .logoutSuccessUrl("/login?logout")
                         .permitAll()
                 )
-                .userDetailsService(customUserDetailsService);
+                .userDetailsService(customUserDetailsService)
+                // Отключаем frameOptions для H2 (если будешь пользоваться)
+                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
+                // CSRF отключаем только для H2-консоли
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/my-h2-admin/**")
+                );
 
         return http.build();
     }

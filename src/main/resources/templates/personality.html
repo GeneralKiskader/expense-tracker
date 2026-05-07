@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Твоя Денежная Личность • ExpenseTracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+        
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .font-display { font-family: 'Space Grotesk', system_ui, sans-serif; }
+        
+        .glass {
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .personality-hero {
+            background: linear-gradient(135deg, #052e16 0%, #111827 100%);
+        }
+
+        .metric-value {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .tip-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .tip-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(16 185 129 / 0.1);
+        }
+
+        .personality-badge {
+            animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-200">
+    <!-- Navigation -->
+    <nav class="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-lg fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-x-8">
+                <div class="flex items-center gap-x-3">
+                    <div class="w-9 h-9 bg-emerald-500 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-wallet text-white text-2xl"></i>
+                    </div>
+                    <span class="font-semibold text-2xl tracking-tighter">ExpenseTracker</span>
+                </div>
+                
+                <div class="hidden md:flex items-center gap-x-1 text-sm">
+                    <a th:href="@{/dashboard}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors">Дашборд</a>
+                    <a th:href="@{/reports}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors">Отчёты</a>
+                    <a th:href="@{/goals}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors">Цели</a>
+                    <a th:href="@{/personality}" class="nav-active px-4 py-2 rounded-2xl">Личность</a>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-x-3">
+                <div class="flex items-center gap-x-2 bg-zinc-900 rounded-3xl px-2 py-1.5 pr-5">
+                    <img th:src="@{'https://i.pravatar.cc/32?u=' + ${currentUser.email}}" class="w-8 h-8 rounded-2xl" alt="">
+                    <div class="text-sm font-medium" th:text="${currentUser.firstName}">Иван</div>
+                </div>
+                <a th:href="@{/logout}" class="px-4 py-2 text-sm hover:bg-zinc-900 rounded-2xl flex items-center gap-x-2">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="pt-20 max-w-5xl mx-auto px-6 pb-16">
+        
+        <!-- Hero -->
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center gap-x-2 bg-emerald-500/10 text-emerald-400 px-4 py-1 rounded-3xl text-sm mb-4">
+                <i class="fa-solid fa-user-astronaut"></i>
+                <span>ПЕРСОНАЛЬНЫЙ АНАЛИЗ</span>
+            </div>
+            
+            <h1 class="text-5xl font-bold tracking-tighter">Твоя Денежная Личность</h1>
+            <p class="mt-4 text-xl text-zinc-400">Мы проанализировали твои привычки и составили портрет</p>
+        </div>
+
+        <!-- Personality Card -->
+        <div class="glass border border-zinc-700 rounded-3xl p-12 mb-12 relative overflow-hidden">
+            <div class="flex flex-col lg:flex-row items-center gap-12">
+                
+                <!-- Icon -->
+                <div class="flex-shrink-0">
+                    <div class="w-40 h-40 bg-emerald-500/10 rounded-full flex items-center justify-center">
+                        <i th:class="${personalityIcon + ' text-[120px] text-emerald-400'}"></i>
+                    </div>
+                </div>
+
+                <div class="flex-1">
+                    <div class="personality-badge inline-block px-5 py-1.5 bg-emerald-500 text-white rounded-3xl text-sm font-semibold mb-4">
+                        ТВОЙ ТИП
+                    </div>
+                    
+                    <h2 class="text-6xl font-bold tracking-tighter" th:text="${personalityType}">Стратегический Накопитель</h2>
+                    
+                    <div class="mt-6 text-xl text-zinc-300 max-w-2xl" th:text="${personalityDescription}">
+                        Ты тщательно планируешь каждый расход и всегда думаешь о будущем. Твоя главная суперсила — дисциплина и долгосрочное мышление.
+                    </div>
+                    
+                    <div class="mt-8 flex flex-wrap gap-3">
+                        <div class="px-4 py-2 bg-white/5 rounded-2xl text-sm flex items-center gap-x-2">
+                            <i class="fa-solid fa-chart-line text-emerald-400"></i>
+                            <span>Высокий самоконтроль</span>
+                        </div>
+                        <div class="px-4 py-2 bg-white/5 rounded-2xl text-sm flex items-center gap-x-2">
+                            <i class="fa-solid fa-clock text-emerald-400"></i>
+                            <span>Долгосрочное мышление</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-8 mb-12">
+            
+            <!-- Strengths -->
+            <div class="glass border border-zinc-700 rounded-3xl p-8">
+                <div class="flex items-center gap-x-3 mb-6">
+                    <div class="w-10 h-10 bg-emerald-500/10 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-tachometer-alt text-emerald-400"></i>
+                    </div>
+                    <div class="font-semibold text-2xl">Твои сильные стороны</div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div th:each="strength : ${strengths}" class="flex items-start gap-x-4 p-4 bg-white/5 rounded-2xl">
+                        <i class="fa-solid fa-check-circle text-emerald-400 mt-1"></i>
+                        <span th:text="${strength}"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weaknesses -->
+            <div class="glass border border-zinc-700 rounded-3xl p-8">
+                <div class="flex items-center gap-x-3 mb-6">
+                    <div class="w-10 h-10 bg-amber-500/10 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-exclamation-triangle text-amber-400"></i>
+                    </div>
+                    <div class="font-semibold text-2xl">Зоны роста</div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div th:each="weakness : ${weaknesses}" class="flex items-start gap-x-4 p-4 bg-white/5 rounded-2xl">
+                        <i class="fa-solid fa-arrow-up text-amber-400 mt-1"></i>
+                        <span th:text="${weakness}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Personalized Tips -->
+        <div class="glass border border-zinc-700 rounded-3xl p-8 mb-12">
+            <div class="flex items-center gap-x-3 mb-8">
+                <div class="w-10 h-10 bg-purple-500/10 rounded-2xl flex items-center justify-center">
+                    <i class="fa-solid fa-lightbulb text-purple-400"></i>
+                </div>
+                <div class="font-semibold text-2xl">Персональные рекомендации именно для тебя</div>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-6">
+                <div th:each="tip : ${tips}" class="tip-card p-6 bg-white/5 rounded-2xl border border-white/10">
+                    <div class="text-purple-400 mb-4">
+                        <i class="fa-solid fa-magic text-2xl"></i>
+                    </div>
+                    <div th:text="${tip}"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Future You Simulator -->
+        <div class="glass border border-zinc-700 rounded-3xl p-10">
+            <div class="text-center mb-10">
+                <div class="text-emerald-400 text-sm font-semibold tracking-widest">СИМУЛЯТОР БУДУЩЕГО</div>
+                <h3 class="text-4xl font-bold tracking-tighter mt-2">Какой ты будешь через 5 и 10 лет?</h3>
+                <p class="text-zinc-400 mt-3 max-w-md mx-auto">Посмотри, как изменится твоя жизнь, если ты продолжишь текущие привычки</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- 5 Years -->
+                <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <div class="text-sm text-zinc-400">Через 5 лет</div>
+                            <div class="text-3xl font-bold">33 года</div>
+                        </div>
+                        <i class="fa-solid fa-rocket text-4xl text-emerald-400"></i>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between text-sm mb-2">
+                                <div>Накопления</div>
+                                <div class="font-semibold">1 358 000 BYN</div>
+                            </div>
+                            <div class="h-3 bg-zinc-800 rounded-full"><div class="h-3 bg-emerald-500 rounded-full w-[78%]"></div></div>
+                        </div>
+                        
+                        <div class="text-sm text-emerald-400">
+                            Ты сможешь купить квартиру в ипотеку или отличный автомобиль
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 10 Years -->
+                <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <div class="text-sm text-zinc-400">Через 10 лет</div>
+                            <div class="text-3xl font-bold">38 лет</div>
+                        </div>
+                        <i class="fa-solid fa-globe text-4xl text-blue-400"></i>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between text-sm mb-2">
+                                <div>Накопления</div>
+                                <div class="font-semibold">3 124 000 BYN</div>
+                            </div>
+                            <div class="h-3 bg-zinc-800 rounded-full"><div class="h-3 bg-blue-500 rounded-full w-[92%]"></div></div>
+                        </div>
+                        
+                        <div class="text-sm text-blue-400">
+                            Полная финансовая свобода. Можно не работать 3–4 года
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 text-center text-xs text-zinc-500">
+                Расчёт сделан на основе твоей текущей скорости накоплений • Данные приблизительные
+            </div>
+        </div>
+
+        <div class="text-center mt-12">
+            <button onclick="window.location.href='/reports'" 
+                    class="px-8 py-3.5 bg-white text-zinc-950 rounded-2xl font-semibold hover:bg-zinc-100 transition-all flex items-center gap-x-2 mx-auto">
+                Посмотреть подробный отчёт <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</body>
+</html>

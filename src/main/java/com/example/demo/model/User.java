@@ -12,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = "password")  // чтобы в логах не светился пароль
+@ToString(exclude = "password")
 public class User {
 
     @Id
@@ -31,4 +31,9 @@ public class User {
 
     @NotBlank
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private Role role = Role.USER;
 }

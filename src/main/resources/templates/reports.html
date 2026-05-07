@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отчёты и аналитика • ExpenseTracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap');
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); }
+        .nav-active { background-color: #27272a; color: white; }
+        .metric-card { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .metric-card:hover { transform: scale(1.03); }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-200">
+    <!-- Navigation -->
+    <nav class="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-lg fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-x-8">
+                <div class="flex items-center gap-x-3">
+                    <div class="w-9 h-9 bg-emerald-500 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-wallet text-white text-2xl"></i>
+                    </div>
+                    <span class="font-semibold text-2xl tracking-tighter">ExpenseTracker</span>
+                </div>
+                <div class="hidden md:flex items-center gap-x-1 text-sm">
+                    <a th:href="@{/dashboard}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                        <i class="fa-solid fa-chart-line w-4"></i> <span>Дашборд</span>
+                    </a>
+                    <a th:href="@{/expenses}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                        <i class="fa-solid fa-receipt w-4"></i> <span>Расходы</span>
+                    </a>
+                    <a th:href="@{/reports}" class="nav-active px-4 py-2 rounded-2xl flex items-center gap-x-2">
+                        <i class="fa-solid fa-chart-bar w-4"></i> <span>Отчёты</span>
+                    </a>
+                    <a th:href="@{/goals}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                        <i class="fa-solid fa-bullseye w-4"></i> <span>Цели</span>
+                    </a>
+                </div>
+            </div>
+            <div class="flex items-center gap-x-3">
+                <div class="flex items-center gap-x-2 bg-zinc-900 rounded-3xl px-2 py-1.5 pr-5">
+                    <img th:src="@{'https://i.pravatar.cc/32?u=' + ${currentUser.email}}" class="w-8 h-8 rounded-2xl" alt="avatar">
+                    <div class="text-sm font-medium" th:text="${currentUser.firstName}">Иван</div>
+                </div>
+                <a th:href="@{/logout}" class="px-4 py-2 text-sm hover:bg-zinc-900 rounded-2xl flex items-center gap-x-2">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="pt-20 max-w-7xl mx-auto px-6 pb-12">
+        <div class="flex items-end justify-between mb-8">
+            <div>
+                <h1 class="text-4xl font-semibold tracking-tighter">Отчёты и аналитика</h1>
+                <p class="text-zinc-400">Глубокий анализ твоих финансов за любой период</p>
+            </div>
+            <div class="flex items-center gap-x-3">
+                <select class="bg-zinc-900 border border-zinc-700 px-4 py-2 rounded-2xl text-sm">
+                    <option>Март 2026</option>
+                    <option>Февраль 2026</option>
+                    <option>Январь 2026</option>
+                    <option>Последние 3 месяца</option>
+                    <option>Последние 6 месяцев</option>
+                    <option>Весь год</option>
+                </select>
+                <button class="flex items-center gap-x-2 px-5 py-2 bg-white text-zinc-950 rounded-2xl text-sm font-semibold hover:bg-zinc-100">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Экспорт PDF</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+            <div class="metric-card glass border border-zinc-800 rounded-3xl p-6">
+                <div class="text-sm text-zinc-400">Общие расходы</div>
+                <div class="text-4xl font-semibold mt-2" 
+                     th:text="${#numbers.formatDecimal(totalSpent != null ? totalSpent : 0, 0, 'COMMA', 0, 'POINT')} + ' BYN'">124 890 BYN</div>
+                <div class="text-xs mt-1" 
+                     th:class="${monthChange >= 0} ? 'text-red-400' : 'text-emerald-400'"
+                     th:text="${monthChange >= 0} ? '+' + ${#numbers.formatDecimal(monthChange, 0, 1)} + '% к прошлому месяцу' : ${#numbers.formatDecimal(monthChange, 0, 1)} + '% к прошлому месяцу'">+12% к прошлому месяцу</div>
+            </div>
+            <div class="metric-card glass border border-zinc-800 rounded-3xl p-6">
+                <div class="text-sm text-zinc-400">Средний расход в день</div>
+                <div class="text-4xl font-semibold mt-2" 
+                     th:text="${#numbers.formatDecimal(avgDaily != null ? avgDaily : 0, 0, 'COMMA', 0, 'POINT')} + ' BYN'">4 163 BYN</div>
+                <div class="text-xs text-emerald-400 mt-1">На основе всех дней с тратами</div>
+            </div>
+            <div class="metric-card glass border border-zinc-800 rounded-3xl p-6">
+                <div class="text-sm text-zinc-400">Топ категория</div>
+                <div class="text-4xl font-semibold mt-2" th:text="${topCategory}">Продукты</div>
+                <div class="text-xs text-orange-400 mt-1" 
+                     th:text="${#numbers.formatDecimal(topCategoryPercent, 0, 1)} + '% от всех расходов'">32% от всех расходов</div>
+            </div>
+            <div class="metric-card glass border border-zinc-800 rounded-3xl p-6">
+                <div class="text-sm text-zinc-400">Расходов всего</div>
+                <div class="text-4xl font-semibold mt-2 text-emerald-400" th:text="${expenseCount}">87</div>
+                <div class="text-xs text-emerald-400 mt-1">записей в системе</div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-5 gap-6">
+            <!-- Main Trend Chart -->
+            <div class="lg:col-span-3 glass border border-zinc-800 rounded-3xl p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <div class="font-semibold text-xl">Динамика расходов</div>
+                        <div class="text-xs text-zinc-400">Последние 90 дней</div>
+                    </div>
+                    <div class="flex gap-x-2 text-xs">
+                        <div class="px-3 py-1 bg-emerald-500 text-white rounded-2xl">90 дней</div>
+                        <div class="px-3 py-1 hover:bg-zinc-800 rounded-2xl cursor-pointer">6 мес</div>
+                        <div class="px-3 py-1 hover:bg-zinc-800 rounded-2xl cursor-pointer">1 год</div>
+                    </div>
+                </div>
+                <div class="h-80">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Category Breakdown -->
+            <div class="lg:col-span-2 glass border border-zinc-800 rounded-3xl p-8">
+                <div class="font-semibold text-xl mb-6">Распределение по категориям</div>
+                <div class="h-80 flex items-center justify-center">
+                    <canvas id="categoryPie"></canvas>
+                </div>
+            </div>
+
+            <!-- Top Spending Days -->
+            <div class="lg:col-span-3 glass border border-zinc-800 rounded-3xl p-8">
+                <div class="font-semibold text-xl mb-6">Топ дней по расходам</div>
+                <div class="space-y-4">
+                    <div th:each="day : ${topDays}" class="flex items-center justify-between p-4 hover:bg-zinc-900 rounded-2xl">
+                        <div class="flex items-center gap-x-4">
+                            <div class="w-9 h-9 bg-red-500/10 rounded-2xl flex items-center justify-center text-red-400" 
+                                 th:text="${#strings.substring(day.date, 0, 2)}">15</div>
+                            <div th:text="${day.date} + ' — ' + ${day.dayName}">15 марта — Пятница</div>
+                        </div>
+                        <div class="font-semibold" 
+                             th:text="${#numbers.formatDecimal(day.amount, 0, 'COMMA', 0, 'POINT')} + ' BYN'">12 450 BYN</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Comparison -->
+            <div class="lg:col-span-2 glass border border-zinc-800 rounded-3xl p-8">
+                <div class="font-semibold text-xl mb-6">Сравнение месяцев</div>
+                <div class="space-y-6">
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <div>Март 2026</div>
+                            <div class="font-semibold">124 890 BYN</div>
+                        </div>
+                        <div class="h-3 bg-zinc-800 rounded-full overflow-hidden">
+                            <div class="h-3 bg-emerald-500 rounded-full" style="width: 78%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <div>Февраль 2026</div>
+                            <div class="font-semibold">111 200 BYN</div>
+                        </div>
+                        <div class="h-3 bg-zinc-800 rounded-full overflow-hidden">
+                            <div class="h-3 bg-emerald-500 rounded-full" style="width: 69%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <div>Январь 2026</div>
+                            <div class="font-semibold">98 450 BYN</div>
+                        </div>
+                        <div class="h-3 bg-zinc-800 rounded-full overflow-hidden">
+                            <div class="h-3 bg-emerald-500 rounded-full" style="width: 61%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        function initCharts() {
+            // Trend Chart (динамические данные из контроллера)
+            const trendLabels = /*[[${trendLabels}]]*/ ['Нет данных'];
+            const trendData = /*[[${trendData}]]*/ [0];
+
+            new Chart(document.getElementById('trendChart'), {
+                type: 'line',
+                data: {
+                    labels: trendLabels.length > 0 ? trendLabels : ['Нет данных'],
+                    datasets: [{
+                        label: 'Расходы (BYN)',
+                        data: trendData.length > 0 ? trendData : [0],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: '#27272a' }, ticks: { color: '#71717a' } },
+                        x: { grid: { color: '#27272a' }, ticks: { color: '#71717a' } }
+                    }
+                }
+            });
+
+            // Category Pie (динамические данные)
+            const categoryLabels = /*[[${categoryNames}]]*/ ['Нет данных'];
+            const categoryData = /*[[${categoryAmounts}]]*/ [0];
+            const categoryColors = ['#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b', '#14b8a6', '#8b5cf6'];
+
+            new Chart(document.getElementById('categoryPie'), {
+                type: 'doughnut',
+                data: {
+                    labels: categoryLabels.length > 0 ? categoryLabels : ['Нет данных'],
+                    datasets: [{
+                        data: categoryData.length > 0 ? categoryData : [0],
+                        backgroundColor: categoryColors.slice(0, categoryLabels.length),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#a1a1aa', padding: 20 } }
+                    }
+                }
+            });
+        }
+
+        window.onload = initCharts;
+    </script>
+</body>
+</html>

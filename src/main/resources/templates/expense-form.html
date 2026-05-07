@@ -1,56 +1,95 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Новый расход</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${expense.id != null} ? 'Редактирование расхода' : 'Новый расход'">Расход</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap');
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); }
+        .input-focus { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .input-focus:focus { box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); border-color: #10b981; }
+    </style>
 </head>
-<body class="container mt-4">
-<!-- НАВБАР -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-    <div class="container">
-        <a class="navbar-brand" href="/expenses">💰 Мои расходы</a>
-        <div class="navbar-nav ms-auto">
-            <span class="navbar-text me-3">
-                Привет, <strong th:text="${currentUser.firstName} + ' ' + ${currentUser.lastName}"></strong>!
-            </span>
+<body class="bg-zinc-950 text-zinc-200">
+    <!-- Navigation -->
+    <nav class="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-lg">
+        <div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-x-3">
+                <div class="w-9 h-9 bg-emerald-500 rounded-2xl flex items-center justify-center">
+                    <i class="fa-solid fa-wallet text-white text-2xl"></i>
+                </div>
+                <span class="font-semibold text-2xl tracking-tighter">ExpenseTracker</span>
+            </div>
+            <a th:href="@{/expenses}" class="flex items-center gap-x-2 text-sm hover:text-white text-zinc-400 transition-colors">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Назад к расходам</span>
+            </a>
+        </div>
+    </nav>
 
-            <!-- ВЫХОД через форму (POST) -->
-            <form th:action="@{/logout}" method="post" style="display: inline;">
-                <button type="submit" class="btn btn-outline-light btn-sm">Выйти</button>
+    <div class="max-w-xl mx-auto px-6 py-12">
+        <div class="mb-8">
+            <h1 class="text-4xl font-semibold tracking-tighter" th:text="${expense.id != null} ? 'Редактировать расход' : 'Новый расход'">Новый расход</h1>
+            <p class="text-zinc-400 mt-2">Заполните информацию о расходе</p>
+        </div>
+
+        <div class="glass border border-zinc-800 rounded-3xl p-8">
+            <form th:action="@{/expenses}" th:object="${expense}" method="post" class="space-y-6">
+                <input type="hidden" th:field="*{id}" />
+
+                <div>
+                    <label class="block text-sm font-medium text-zinc-400 mb-2">Дата расхода</label>
+                    <input type="date" th:field="*{date}" required
+                           class="input-focus w-full bg-zinc-900 border border-zinc-700 px-4 py-3.5 rounded-2xl focus:outline-none text-white">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-zinc-400 mb-2">Категория</label>
+                    <select th:field="*{category}" required class="input-focus w-full bg-zinc-900 border border-zinc-700 px-4 py-3.5 rounded-2xl focus:outline-none text-white">
+                        <option value="Продукты">Продукты</option>
+                        <option value="Транспорт">Транспорт</option>
+                        <option value="Жильё">Жильё</option>
+                        <option value="Развлечения">Развлечения</option>
+                        <option value="Здоровье">Здоровье</option>
+                        <option value="Одежда">Одежда</option>
+                        <option value="Другое">Другое</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-zinc-400 mb-2">Сумма (BYN)</label>
+                    <div class="relative">
+                        <input type="number" th:field="*{amount}" step="0.01" min="0.01" required
+                               class="input-focus w-full bg-zinc-900 border border-zinc-700 pl-4 pr-12 py-3.5 rounded-2xl focus:outline-none text-white text-lg font-medium">
+                        <div class="absolute right-5 top-4 text-xl text-zinc-500">BYN</div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-zinc-400 mb-2">Описание</label>
+                    <textarea th:field="*{description}" rows="3" placeholder="Подробное описание расхода (необязательно)"
+                              class="input-focus w-full bg-zinc-900 border border-zinc-700 px-4 py-3.5 rounded-2xl focus:outline-none text-white resize-y"></textarea>
+                </div>
+
+                <div class="flex gap-x-4 pt-4">
+                    <a th:href="@{/expenses}" 
+                       class="flex-1 py-3.5 text-center border border-zinc-700 hover:bg-zinc-900 rounded-2xl font-medium transition-colors">Отмена</a>
+                    <button type="submit" 
+                            class="flex-1 py-3.5 bg-emerald-600 hover:bg-emerald-500 rounded-2xl font-semibold transition-all flex items-center justify-center gap-x-2">
+                        <span th:text="${expense.id != null} ? 'Сохранить изменения' : 'Добавить расход'">Добавить расход</span>
+                        <i class="fa-solid fa-check"></i>
+                    </button>
+                </div>
             </form>
         </div>
+
+        <div class="text-center mt-8 text-xs text-zinc-500">
+            Все данные хранятся в зашифрованном виде и доступны только вам
+        </div>
     </div>
-</nav>
-<h1 th:text="${expense.id == null} ? 'Добавить расход' : 'Редактировать расход'">Новый расход</h1>
-
-<form th:action="@{/expenses}" th:object="${expense}" method="post">
-    <input type="hidden" th:field="*{id}" />
-
-    <div class="mb-3">
-        <label class="form-label">Дата</label>
-        <input type="date" class="form-control" th:field="*{date}" required>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Категория</label>
-        <input type="text" class="form-control" th:field="*{category}" required>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Описание</label>
-        <input type="text" class="form-control" th:field="*{description}">
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Сумма (BYN)</label>
-        <input type="number" step="0.01" class="form-control" th:field="*{amount}" required>
-    </div>
-
-    <button type="submit" class="btn btn-success">Сохранить</button>
-    <a href="/expenses" class="btn btn-secondary">Отмена</a>
-</form>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

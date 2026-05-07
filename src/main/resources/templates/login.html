@@ -1,30 +1,103 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Вход</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход • ExpenseTracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap');
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .glass { background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); }
+        .input-focus { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .input-focus:focus { box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); border-color: #10b981; }
+    </style>
 </head>
-<body class="container mt-5">
-<h2 class="text-center">Вход в систему расходов</h2>
+<body class="bg-zinc-950 text-zinc-200 flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-md px-6">
+        <!-- Logo -->
+        <div class="flex justify-center mb-10">
+            <div class="flex items-center gap-x-3">
+                <div class="w-12 h-12 bg-emerald-500 rounded-3xl flex items-center justify-center shadow-xl shadow-emerald-500/30">
+                    <i class="fa-solid fa-wallet text-white text-4xl"></i>
+                </div>
+                <div>
+                    <span class="font-semibold text-4xl tracking-tighter">Expense</span>
+                    <span class="font-semibold text-4xl tracking-tighter text-emerald-400">Tracker</span>
+                </div>
+            </div>
+        </div>
 
-<div th:if="${param.error}" class="alert alert-danger">Неверный email или пароль</div>
-<div th:if="${param.success}" class="alert alert-success">Регистрация прошла успешно! Войдите.</div>
+        <div class="glass border border-zinc-800 rounded-3xl p-8 shadow-2xl">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-semibold tracking-tight">С возвращением!</h1>
+                <p class="text-zinc-400 mt-2">Войдите в свой аккаунт, чтобы продолжить</p>
+            </div>
 
-<form th:action="@{/login}" method="post" class="col-md-6 mx-auto">
-    <div class="mb-3">
-        <label class="form-label">Email</label>
-        <input type="email" name="username" class="form-control" required>
+            <!-- Error messages -->
+            <div th:if="${param.error}" class="mb-6 p-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-2xl text-sm flex items-center gap-x-3">
+                <i class="fa-solid fa-exclamation-circle"></i>
+                <span>Неверный email или пароль</span>
+            </div>
+            <div th:if="${param.logout}" class="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-2xl text-sm flex items-center gap-x-3">
+                <i class="fa-solid fa-check-circle"></i>
+                <span>Вы успешно вышли из системы</span>
+            </div>
+            <div th:if="${param.success}" class="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-2xl text-sm flex items-center gap-x-3">
+                <i class="fa-solid fa-check-circle"></i>
+                <span>Регистрация прошла успешно! Войдите в аккаунт.</span>
+            </div>
+
+            <form th:action="@{/login}" method="post" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-zinc-400 mb-1.5">Email</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-envelope text-zinc-500"></i>
+                        </div>
+                        <input type="email" name="username" required
+                               class="input-focus w-full bg-zinc-900 border border-zinc-700 text-white pl-11 pr-4 py-3.5 rounded-2xl focus:outline-none placeholder:text-zinc-500"
+                               placeholder="you@example.com">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-zinc-400 mb-1.5">Пароль</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-lock text-zinc-500"></i>
+                        </div>
+                        <input type="password" name="password" required
+                               class="input-focus w-full bg-zinc-900 border border-zinc-700 text-white pl-11 pr-4 py-3.5 rounded-2xl focus:outline-none placeholder:text-zinc-500"
+                               placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between text-sm">
+                    <label class="flex items-center gap-x-2 cursor-pointer">
+                        <input type="checkbox" class="w-4 h-4 accent-emerald-500 rounded">
+                        <span class="text-zinc-400">Запомнить меня</span>
+                    </label>
+                    <a href="#" class="text-emerald-400 hover:text-emerald-300 transition-colors">Забыли пароль?</a>
+                </div>
+
+                <button type="submit"
+                        class="w-full py-3.5 bg-white hover:bg-zinc-100 active:bg-zinc-200 transition-all text-zinc-950 font-semibold rounded-2xl flex items-center justify-center gap-x-2 shadow-xl shadow-emerald-500/20">
+                    <span>Войти в аккаунт</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <div class="mt-8 text-center text-sm text-zinc-400">
+                Ещё нет аккаунта?
+                <a th:href="@{/register}" class="text-emerald-400 hover:text-emerald-300 font-medium transition-colors">Зарегистрироваться</a>
+            </div>
+        </div>
+
+        <div class="text-center mt-8 text-xs text-zinc-500">
+            © 2026 ExpenseTracker • Безопасный учёт расходов
+        </div>
     </div>
-    <div class="mb-3">
-        <label class="form-label">Пароль</label>
-        <input type="password" name="password" class="form-control" required>
-    </div>
-    <button type="submit" class="btn btn-primary w-100">Войти</button>
-</form>
-
-<div class="text-center mt-3">
-    <a href="/register">Нет аккаунта? Зарегистрироваться</a>
-</div>
 </body>
 </html>
