@@ -3,231 +3,329 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Бюджеты • ExpenseTracker</title>
+    <title>Бюджеты и Цели • ExpenseTracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
         body { font-family: 'Inter', system_ui, sans-serif; }
-        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); }
-        .nav-active { background-color: #27272a; color: white; }
-        .progress-bar { transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+        .progress-bar { transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .tab-btn.active { background-color: #27272a; color: white; border-color: #3f3f46; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="bg-zinc-950 text-zinc-200">
-    <!-- Navigation same as before -->
-    <nav class="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-lg fixed w-full z-50">
-        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-x-8">
-                <div class="flex items-center gap-x-3">
-                    <div class="w-9 h-9 bg-emerald-500 rounded-2xl flex items-center justify-center">
-                        <i class="fa-solid fa-wallet text-white text-2xl"></i>
-                    </div>
-                    <span class="font-semibold text-2xl tracking-tighter">Expense<span class="text-emerald-400">Tracker</span></span>
-                </div>
 
-                <div class="hidden md:flex items-center gap-x-1 text-sm">
-                    <a th:href="@{/dashboard}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
-                        <i class="fa-solid fa-chart-line w-4"></i> <span>Дашборд</span>
-                    </a>
-                    <a th:href="@{/expenses}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
-                        <i class="fa-solid fa-receipt w-4"></i> <span>Расходы</span>
-                    </a>
-                    <a th:href="@{/budgets}" class="nav-active px-4 py-2 rounded-2xl flex items-center gap-x-2">
-                        <i class="fa-solid fa-chart-pie w-4"></i> <span>Бюджеты</span>
-                    </a>
-                    <a th:href="@{/profile}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
-                        <i class="fa-solid fa-user w-4"></i> <span>Профиль</span>
-                    </a>
+<nav class="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-lg fixed w-full z-50">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-x-8">
+            <div class="flex items-center gap-x-3">
+                <div class="w-9 h-9 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <i class="fa-solid fa-wallet text-white text-2xl"></i>
                 </div>
+                <span class="font-semibold text-2xl tracking-tighter">Expense<span class="text-blue-400">Tracker</span></span>
             </div>
 
-            <div class="flex items-center gap-x-3">
-                <div class="flex items-center gap-x-2 bg-zinc-900 rounded-3xl px-2 py-1.5 pr-5">
-                    <img th:src="@{'https://i.pravatar.cc/32?u=' + ${currentUser.email}}" class="w-8 h-8 rounded-2xl" alt="avatar">
-                    <div class="text-sm font-medium" th:text="${currentUser.firstName}">Иван</div>
-                </div>
-                <a th:href="@{/logout}" class="px-4 py-2 text-sm hover:bg-zinc-900 rounded-2xl flex items-center gap-x-2">
-                    <i class="fa-solid fa-sign-out-alt"></i>
+            <div class="hidden md:flex items-center gap-x-1 text-sm overflow-x-auto">
+                <a th:href="@{/dashboard}" class="px-3 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                    <i class="fa-solid fa-chart-line w-4"></i> <span>Дашборд</span>
+                </a>
+                <a th:href="@{/expenses}" class="px-3 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                    <i class="fa-solid fa-receipt w-4"></i> <span>Расходы</span>
+                </a>
+                <a th:href="@{/reports}" class="px-3 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                    <i class="fa-solid fa-chart-bar w-4"></i> <span>Отчёты</span>
+                </a>
+                <a th:href="@{/budgets}" class="px-3 py-2 rounded-2xl bg-zinc-800 text-white flex items-center gap-x-2">
+                    <i class="fa-solid fa-chart-pie w-4"></i> <span>Бюджеты</span>
+                </a>
+                <a th:href="@{/goals}" class="px-3 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                    <i class="fa-solid fa-bullseye w-4"></i> <span>Цели</span>
+                </a>
+                <a th:href="@{/bank}" class="px-3 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                    <i class="fa-solid fa-building-columns w-4"></i> <span>Банк</span>
+                </a>
+                <a th:href="@{/personality}" class="px-3 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                    <i class="fa-solid fa-user-astronaut w-4"></i> <span>Личность</span>
                 </a>
             </div>
         </div>
-    </nav>
 
-    <div class="pt-20 max-w-7xl mx-auto px-6 pb-12">
-        <div class="flex items-end justify-between mb-8">
-            <div>
-                <h1 class="text-4xl font-semibold tracking-tighter">Бюджеты</h1>
-                <p class="text-zinc-400">Планируйте расходы и контролируйте лимиты</p>
-            </div>
-            <button onclick="showAddBudgetModal()" 
-                    class="flex items-center gap-x-3 bg-white text-zinc-950 px-6 py-3 rounded-2xl font-semibold hover:bg-zinc-100 transition-all shadow-xl">
-                <i class="fa-solid fa-plus"></i>
-                <span>Новый бюджет</span>
-            </button>
-        </div>
-
-        <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="glass border border-zinc-800 rounded-3xl p-6">
-                <div class="flex justify-between">
-                    <div>
-                        <div class="text-sm text-zinc-400">Общий бюджет</div>
-                        <div class="text-4xl font-semibold mt-2">85 000 BYN</div>
-                    </div>
-                    <i class="fa-solid fa-wallet text-4xl text-emerald-400"></i>
-                </div>
-                <div class="mt-4 text-xs text-emerald-400">78% использовано</div>
-            </div>
-            <div class="glass border border-zinc-800 rounded-3xl p-6">
-                <div class="flex justify-between">
-                    <div>
-                        <div class="text-sm text-zinc-400">Остаток на месяц</div>
-                        <div class="text-4xl font-semibold mt-2">18 650 BYN</div>
-                    </div>
-                    <i class="fa-solid fa-piggy-bank text-4xl text-blue-400"></i>
-                </div>
-                <div class="mt-4 text-xs text-blue-400">До конца месяца: 12 дней</div>
-            </div>
-            <div class="glass border border-zinc-800 rounded-3xl p-6">
-                <div class="flex justify-between">
-                    <div>
-                        <div class="text-sm text-zinc-400">Бюджетов превышено</div>
-                        <div class="text-4xl font-semibold mt-2 text-red-400">2</div>
-                    </div>
-                    <i class="fa-solid fa-exclamation-triangle text-4xl text-red-400"></i>
-                </div>
-                <div class="mt-4 text-xs text-red-400">Продукты и Развлечения</div>
-            </div>
-        </div>
-
-        <!-- Budgets List with Progress -->
-        <div class="glass border border-zinc-800 rounded-3xl overflow-hidden">
-            <div class="px-6 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/50">
-                <div class="font-semibold">Бюджеты по категориям</div>
-                <div class="text-xs text-zinc-400">Март 2026</div>
-            </div>
-            
-            <div class="divide-y divide-zinc-800">
-                <!-- Budget Item 1 -->
-                <div class="px-6 py-5 hover:bg-zinc-900/30 transition-colors">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center gap-x-4">
-                            <div class="w-10 h-10 bg-orange-500/10 rounded-2xl flex items-center justify-center">
-                                <i class="fa-solid fa-shopping-cart text-orange-400"></i>
-                            </div>
-                            <div>
-                                <div class="font-medium">Продукты</div>
-                                <div class="text-xs text-zinc-400">Лимит: 25 000 BYN</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="font-semibold">23 450 BYN <span class="text-xs text-zinc-400">/ 25 000</span></div>
-                            <div class="text-xs text-red-400">94% использовано</div>
-                        </div>
-                    </div>
-                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden">
-                        <div class="progress-bar h-2 bg-gradient-to-r from-orange-400 to-red-500 rounded-full" style="width: 94%"></div>
-                    </div>
-                </div>
-
-                <!-- Budget Item 2 -->
-                <div class="px-6 py-5 hover:bg-zinc-900/30 transition-colors">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center gap-x-4">
-                            <div class="w-10 h-10 bg-blue-500/10 rounded-2xl flex items-center justify-center">
-                                <i class="fa-solid fa-bus text-blue-400"></i>
-                            </div>
-                            <div>
-                                <div class="font-medium">Транспорт</div>
-                                <div class="text-xs text-zinc-400">Лимит: 15 000 BYN</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="font-semibold">9 870 BYN <span class="text-xs text-zinc-400">/ 15 000</span></div>
-                            <div class="text-xs text-emerald-400">66% использовано</div>
-                        </div>
-                    </div>
-                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden">
-                        <div class="progress-bar h-2 bg-gradient-to-r from-blue-400 to-emerald-500 rounded-full" style="width: 66%"></div>
-                    </div>
-                </div>
-
-                <!-- More budgets... -->
-                <div class="px-6 py-5 hover:bg-zinc-900/30 transition-colors">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center gap-x-4">
-                            <div class="w-10 h-10 bg-purple-500/10 rounded-2xl flex items-center justify-center">
-                                <i class="fa-solid fa-home text-purple-400"></i>
-                            </div>
-                            <div>
-                                <div class="font-medium">Жильё</div>
-                                <div class="text-xs text-zinc-400">Лимит: 35 000 BYN</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="font-semibold">28 300 BYN <span class="text-xs text-zinc-400">/ 35 000</span></div>
-                            <div class="text-xs text-emerald-400">81% использовано</div>
-                        </div>
-                    </div>
-                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden">
-                        <div class="progress-bar h-2 bg-gradient-to-r from-purple-400 to-emerald-500 rounded-full" style="width: 81%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-6 text-center text-xs text-zinc-500">
-            Бюджеты обновляются автоматически на основе ваших расходов • Данные за март 2026
-        </div>
-    </div>
-
-    <!-- Add Budget Modal -->
-    <div id="budgetModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center">
-        <div class="glass border border-zinc-700 rounded-3xl w-full max-w-md mx-4 p-8">
-            <div class="flex justify-between items-center mb-6">
-                <div class="font-semibold text-xl">Новый бюджет</div>
-                <button onclick="hideBudgetModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-times text-2xl"></i></button>
-            </div>
-            
-            <form class="space-y-5">
-                <div>
-                    <label class="block text-sm text-zinc-400 mb-1.5">Категория</label>
-                    <select class="w-full bg-zinc-900 border border-zinc-700 px-4 py-3 rounded-2xl">
-                        <option>Продукты</option>
-                        <option>Транспорт</option>
-                        <option>Жильё</option>
-                        <option>Развлечения</option>
-                        <option>Здоровье</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm text-zinc-400 mb-1.5">Месячный лимит (BYN)</label>
-                    <input type="number" value="25000" class="w-full bg-zinc-900 border border-zinc-700 px-4 py-3 rounded-2xl">
-                </div>
-                <div class="flex gap-x-3 pt-4">
-                    <button type="button" onclick="hideBudgetModal()" class="flex-1 py-3 border border-zinc-700 rounded-2xl">Отмена</button>
-                    <button type="button" onclick="addBudget()" class="flex-1 py-3 bg-emerald-600 rounded-2xl font-semibold">Создать бюджет</button>
-                </div>
+        <div class="flex items-center gap-x-3">
+            <a th:href="@{/profile}" class="flex items-center gap-x-2 bg-zinc-900 hover:bg-zinc-800 transition-colors rounded-3xl px-2 py-1.5 pr-5 cursor-pointer">
+                <img th:src="@{'https://i.pravatar.cc/32?u=' + ${currentUser.email}}" class="w-8 h-8 rounded-2xl" alt="avatar">
+                <div class="text-sm font-medium" th:text="${currentUser.firstName}">Имя</div>
+            </a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="px-4 py-2 text-sm hover:bg-zinc-900 rounded-2xl flex items-center gap-x-2 transition-colors">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                </button>
             </form>
         </div>
     </div>
+</nav>
 
-    <script>
-        function showAddBudgetModal() {
-            document.getElementById('budgetModal').classList.remove('hidden');
-            document.getElementById('budgetModal').classList.add('flex');
-        }
-        function hideBudgetModal() {
-            const modal = document.getElementById('budgetModal');
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-        }
-        function addBudget() {
-            alert('Бюджет успешно создан! (демо)');
-            hideBudgetModal();
-            // В реальном проекте здесь будет AJAX запрос
-        }
-    </script>
+<div class="pt-24 max-w-6xl mx-auto px-6 pb-12">
+    <div class="flex items-end justify-between mb-8">
+        <div>
+            <h1 class="text-4xl font-semibold tracking-tighter">Бюджеты и Цели</h1>
+            <p class="text-zinc-400 mt-1">Планируйте доходы, контролируйте расходы и копите на мечту</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="glass p-6 rounded-3xl shadow-xl flex flex-col justify-between">
+            <div class="text-sm text-zinc-400 mb-2">Общие расходы (План / Факт)</div>
+            <div class="text-2xl font-bold"><span th:text="${#numbers.formatDecimal(totalActualExp != null ? totalActualExp : 0, 0, 'COMMA', 0, 'POINT')}"></span> <span class="text-lg text-zinc-500">/ <span th:text="${#numbers.formatDecimal(totalPlannedExp != null ? totalPlannedExp : 0, 0, 'COMMA', 0, 'POINT')}"></span> BYN</span></div>
+        </div>
+
+        <div class="glass p-6 rounded-3xl shadow-xl flex flex-col justify-between border-b-4"
+             th:classappend="${isOverspent ? 'border-red-500' : 'border-emerald-500'}">
+            <div class="text-sm text-zinc-400 mb-2" th:text="${isOverspent ? 'Внимание, перерасход!' : 'Отлично, вы в плюсе!'}">Статус</div>
+            <div class="text-2xl font-bold" th:classappend="${isOverspent ? 'text-red-400' : 'text-emerald-400'}">
+                <span th:text="${isOverspent ? '-' : '+'}"></span>
+                <span th:text="${#numbers.formatDecimal(expenseDiff != null ? expenseDiff : 0, 0, 'COMMA', 2, 'POINT')}"></span> BYN
+            </div>
+            <div class="text-xs text-zinc-500 mt-2" th:text="${isOverspent ? 'Вы потратили больше, чем планировали.' : 'Свободные средства можно отложить на цели.'}"></div>
+        </div>
+
+        <div class="glass p-6 rounded-3xl shadow-xl flex flex-col justify-between">
+            <div class="text-sm text-zinc-400 mb-2">Общие доходы (План / Факт)</div>
+            <div class="text-2xl font-bold text-blue-400"><span th:text="${#numbers.formatDecimal(totalActualInc != null ? totalActualInc : 0, 0, 'COMMA', 0, 'POINT')}"></span> <span class="text-lg text-zinc-500">/ <span th:text="${#numbers.formatDecimal(totalPlannedInc != null ? totalPlannedInc : 0, 0, 'COMMA', 0, 'POINT')}"></span> BYN</span></div>
+        </div>
+    </div>
+
+    <div class="flex gap-x-2 mb-8 bg-zinc-900 p-1.5 rounded-2xl w-max border border-zinc-800">
+        <button onclick="switchTab('expenses')" id="btn-expenses" class="tab-btn active px-6 py-2.5 rounded-xl text-sm font-medium transition-colors text-zinc-400 hover:text-white">Расходы (Лимиты)</button>
+        <button onclick="switchTab('incomes')" id="btn-incomes" class="tab-btn px-6 py-2.5 rounded-xl text-sm font-medium transition-colors text-zinc-400 hover:text-white">Доходы (План)</button>
+        <button onclick="switchTab('goals')" id="btn-goals" class="tab-btn px-6 py-2.5 rounded-xl text-sm font-medium transition-colors text-zinc-400 hover:text-white flex items-center gap-x-2">
+            Цели <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="tab-expenses" class="tab-content active">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold">Лимиты по категориям</h2>
+            <button onclick="openBudgetModal('EXPENSE')" class="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors border border-zinc-700">
+                <i class="fa-solid fa-plus mr-1"></i> Добавить лимит
+            </button>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div th:if="${expenseStats.empty}" class="col-span-full text-center py-12 glass rounded-3xl text-zinc-500">У вас нет запланированных лимитов на этот месяц.</div>
+
+            <div th:each="stat : ${expenseStats}" class="glass p-6 rounded-3xl shadow-xl relative overflow-hidden" th:classappend="${stat.percent >= 100 ? 'border border-red-500/50 bg-red-500/5' : ''}">
+                <div class="flex justify-between items-start mb-4 relative z-10">
+                    <div class="font-semibold text-lg" th:text="${stat.category}">Категория</div>
+                    <div class="text-right">
+                        <div class="font-semibold"><span th:text="${#numbers.formatDecimal(stat.actual, 0, 'COMMA', 0, 'POINT')}">0</span> / <span th:text="${#numbers.formatDecimal(stat.planned, 0, 'COMMA', 0, 'POINT')}">0</span> BYN</div>
+                    </div>
+                </div>
+                <div class="h-3 bg-zinc-800 rounded-full overflow-hidden mb-3 relative z-10">
+                    <div class="h-full progress-bar rounded-full"
+                         th:style="'width: ' + (${stat.percent} > 100 ? 100 : ${stat.percent}) + '%'"
+                         th:classappend="${stat.percent >= 100} ? 'bg-red-500' : (${stat.percent >= 80} ? 'bg-amber-500' : 'bg-blue-500')"></div>
+                </div>
+                <div class="flex justify-between items-center mt-2 relative z-10">
+                    <div class="text-xs" th:classappend="${stat.percent >= 100 ? 'text-red-400 font-semibold' : 'text-zinc-400'}"
+                         th:text="${stat.percent >= 100 ? 'Лимит превышен!' : 'Остаток: ' + #numbers.formatDecimal(stat.planned - stat.actual, 0, 'COMMA', 2, 'POINT') + ' BYN'}"></div>
+                    <a th:href="@{/budgets/delete/{id}(id=${stat.id})}" class="text-zinc-500 hover:text-red-400 text-xs transition-colors"><i class="fa-solid fa-trash"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-incomes" class="tab-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold">Ожидаемые поступления</h2>
+            <div class="flex gap-x-2">
+                <button onclick="openBudgetModal('INCOME')" class="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors border border-zinc-700">
+                    <i class="fa-solid fa-bullseye mr-1"></i> План дохода
+                </button>
+                <button onclick="openIncomeModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-plus mr-1"></i> Факт. доход
+                </button>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div th:if="${incomeStats.empty}" class="col-span-full text-center py-12 glass rounded-3xl text-zinc-500">Вы не планировали доходы на этот месяц.</div>
+
+            <div th:each="stat : ${incomeStats}" class="glass p-6 rounded-3xl shadow-xl border border-emerald-500/10">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="font-semibold text-lg text-emerald-100" th:text="${stat.category}">Зарплата</div>
+                    <div class="text-right">
+                        <div class="font-semibold text-emerald-400"><span th:text="${#numbers.formatDecimal(stat.actual, 0, 'COMMA', 0, 'POINT')}">0</span> / <span th:text="${#numbers.formatDecimal(stat.planned, 0, 'COMMA', 0, 'POINT')}">0</span> BYN</div>
+                    </div>
+                </div>
+                <div class="h-3 bg-zinc-800 rounded-full overflow-hidden mb-3">
+                    <div class="h-full progress-bar rounded-full"
+                         th:style="'width: ' + (${stat.percent} > 100 ? 100 : ${stat.percent}) + '%'"
+                         th:classappend="${stat.percent >= 100} ? 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]' : 'bg-emerald-600/50'"></div>
+                </div>
+                <div class="flex justify-between items-center mt-2">
+                    <div class="text-xs text-zinc-400" th:text="${stat.percent >= 100 ? 'План выполнен! 🎉' : 'Собрано ' + stat.percent + '%'}"></div>
+                    <a th:href="@{/budgets/delete/{id}(id=${stat.id})}" class="text-zinc-500 hover:text-red-400 text-xs transition-colors"><i class="fa-solid fa-trash"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-goals" class="tab-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold">Финансовые цели</h2>
+            <button onclick="openGoalModal()" class="bg-amber-500 hover:bg-amber-400 text-zinc-950 px-4 py-2 rounded-xl text-sm font-bold transition-colors shadow-lg shadow-amber-500/20">
+                <i class="fa-solid fa-plus mr-1"></i> Создать цель
+            </button>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div th:if="${goals.empty}" class="col-span-full text-center py-12 glass rounded-3xl text-zinc-500">У вас пока нет финансовых целей. Начните копить на мечту!</div>
+
+            <div th:each="goal : ${goals}" class="glass p-6 rounded-3xl shadow-xl relative overflow-hidden group border border-amber-500/10 hover:border-amber-500/30 transition-colors">
+                <div class="absolute top-0 right-0 p-6 text-amber-500/10 text-6xl group-hover:scale-110 transition-transform"><i class="fa-solid fa-star"></i></div>
+                <div class="relative z-10">
+                    <h3 class="text-2xl font-bold mb-4" th:text="${goal.name}">Новый ноутбук</h3>
+                    <div class="mb-2 flex justify-between items-end">
+                        <div class="text-2xl font-semibold text-white"><span th:text="${#numbers.formatDecimal(goal.currentAmount, 0, 'COMMA', 0, 'POINT')}"></span> <span class="text-sm text-zinc-500">/ <span th:text="${#numbers.formatDecimal(goal.targetAmount, 0, 'COMMA', 0, 'POINT')}"></span> BYN</span></div>
+                        <div class="font-medium text-amber-400" th:with="pct=${goal.targetAmount > 0 ? (goal.currentAmount * 100 / goal.targetAmount) : 0}" th:text="${#numbers.formatDecimal(pct, 0, 0)} + '%'">0%</div>
+                    </div>
+                    <div class="h-3 bg-zinc-800 rounded-full overflow-hidden mb-6">
+                        <div class="h-full bg-gradient-to-r from-amber-600 to-yellow-400 progress-bar rounded-full" th:with="pct=${goal.targetAmount > 0 ? (goal.currentAmount * 100 / goal.targetAmount) : 0}" th:style="'width: ' + (${pct > 100 ? 100 : pct}) + '%'"></div>
+                    </div>
+                    <div class="flex justify-end">
+                        <button th:data-id="${goal.id}"
+                                th:data-name="${goal.name}"
+                                onclick="openFundModal(this.getAttribute('data-id'), this.getAttribute('data-name'))"
+                                class="bg-zinc-800 hover:bg-zinc-700 text-white px-5 py-2 rounded-xl text-sm font-medium transition-colors border border-zinc-700">
+                            Пополнить копилку
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="budgetModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="glass border border-zinc-700 rounded-3xl w-full max-w-md p-8 relative">
+        <button onclick="closeModal('budgetModal')" class="absolute top-6 right-6 text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+        <h3 class="text-2xl font-bold mb-6" id="budgetModalTitle">Установить план</h3>
+        <form th:action="@{/budgets}" method="post" class="space-y-5">
+            <input type="hidden" name="type" id="budgetTypeInput" value="EXPENSE">
+            <div>
+                <label class="block text-sm font-medium text-zinc-400 mb-1.5">Категория</label>
+                <input type="text" name="category" required placeholder="Например: Продукты или Зарплата" class="w-full bg-zinc-900 border border-zinc-700 px-4 py-3.5 rounded-2xl focus:outline-none focus:border-blue-500 text-white">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-400 mb-1.5">Сумма (План в BYN)</label>
+                <input type="number" name="plannedAmount" step="0.01" min="1" required class="w-full bg-zinc-900 border border-zinc-700 px-4 py-3.5 rounded-2xl focus:outline-none focus:border-blue-500 text-white">
+            </div>
+            <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 rounded-2xl font-semibold text-white mt-2 transition-colors">Сохранить</button>
+        </form>
+    </div>
+</div>
+
+<div id="incomeModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="glass border border-emerald-500/30 bg-zinc-950 rounded-3xl w-full max-w-md p-8 relative">
+        <button onclick="closeModal('incomeModal')" class="absolute top-6 right-6 text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+        <h3 class="text-2xl font-bold mb-6 text-emerald-400"><i class="fa-solid fa-arrow-down-long mr-2"></i>Добавить доход</h3>
+        <form th:action="@{/incomes}" method="post" class="space-y-5">
+            <div>
+                <label class="block text-sm text-zinc-400 mb-1.5">Категория (Источник)</label>
+                <input type="text" name="category" required placeholder="Например: Зарплата, Премия" class="w-full bg-zinc-900 border border-zinc-700 px-4 py-3.5 rounded-2xl text-white focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+                <label class="block text-sm text-zinc-400 mb-1.5">Сумма (BYN)</label>
+                <input type="number" name="amount" step="0.01" min="1" required class="w-full bg-zinc-900 border border-zinc-700 px-4 py-3.5 rounded-2xl text-white focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+                <label class="block text-sm text-zinc-400 mb-1.5">Комментарий</label>
+                <input type="text" name="description" class="w-full bg-zinc-900 border border-zinc-700 px-4 py-3.5 rounded-2xl text-white focus:outline-none focus:border-emerald-500">
+            </div>
+            <button type="submit" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 rounded-2xl font-semibold text-white transition-colors">Зачислить</button>
+        </form>
+    </div>
+</div>
+
+<div id="goalModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="glass border border-amber-500/30 bg-zinc-950 rounded-3xl w-full max-w-md p-8 relative">
+        <button onclick="closeModal('goalModal')" class="absolute top-6 right-6 text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+        <h3 class="text-2xl font-bold mb-6 text-amber-400"><i class="fa-solid fa-star mr-2"></i>Новая цель</h3>
+        <form th:action="@{/goals/new}" method="post" class="space-y-5">
+            <div>
+                <label class="block text-sm text-zinc-400 mb-1.5">Название (На что копим?)</label>
+                <input type="text" name="name" required class="w-full bg-zinc-900 border border-zinc-700 px-4 py-3.5 rounded-2xl text-white focus:outline-none focus:border-amber-500">
+            </div>
+            <div>
+                <label class="block text-sm text-zinc-400 mb-1.5">Необходимая сумма (BYN)</label>
+                <input type="number" name="targetAmount" step="0.01" min="1" required class="w-full bg-zinc-900 border border-zinc-700 px-4 py-3.5 rounded-2xl text-white focus:outline-none focus:border-amber-500">
+            </div>
+            <button type="submit" class="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-2xl font-bold transition-colors">Начать копить</button>
+        </form>
+    </div>
+</div>
+
+<div id="fundModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="glass border border-zinc-700 bg-zinc-900 rounded-3xl w-full max-w-sm p-8 relative text-center">
+        <button onclick="closeModal('fundModal')" class="absolute top-6 right-6 text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+        <div class="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">🐷</div>
+        <h3 class="text-xl font-bold mb-1">Пополнить копилку</h3>
+        <p class="text-sm text-zinc-400 mb-6" id="fundGoalName">Название цели</p>
+        <form th:action="@{/goals/fund}" method="post">
+            <input type="hidden" name="goalId" id="fundGoalIdInput">
+            <input type="number" name="amount" step="0.01" min="1" required placeholder="Сумма в BYN" class="w-full bg-zinc-950 border border-zinc-800 px-4 py-4 rounded-2xl text-white text-center text-xl font-bold mb-4 focus:outline-none focus:border-amber-500">
+            <button type="submit" class="w-full py-3.5 bg-white text-zinc-950 hover:bg-zinc-200 rounded-2xl font-bold transition-colors">Отложить средства</button>
+        </form>
+    </div>
+</div>
+
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<script>
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + tabName).classList.add('active');
+        document.getElementById('btn-' + tabName).classList.add('active');
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }
+
+    function openBudgetModal(type) {
+        document.getElementById('budgetTypeInput').value = type;
+        document.getElementById('budgetModalTitle').innerText = type === 'EXPENSE' ? 'Лимит расхода' : 'План дохода';
+        const modal = document.getElementById('budgetModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function openIncomeModal() {
+        const modal = document.getElementById('incomeModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function openGoalModal() {
+        const modal = document.getElementById('goalModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function openFundModal(id, name) {
+        document.getElementById('fundGoalIdInput').value = id;
+        document.getElementById('fundGoalName').innerText = name;
+        const modal = document.getElementById('fundModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+</script>
 </body>
 </html>

@@ -7,211 +7,267 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
         body { font-family: 'Inter', system_ui, sans-serif; }
         .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); }
+        .bank-card { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .bank-card:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.1); border-color: #10b981; }
         .nav-active { background-color: #27272a; color: white; }
-        .bank-card {
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .bank-card:hover {
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-        }
-        .connected-badge {
-            animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
     </style>
 </head>
 <body class="bg-zinc-950 text-zinc-200">
-    <!-- Navigation -->
-    <nav class="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-lg fixed w-full z-50">
-        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-x-8">
-                <div class="flex items-center gap-x-3">
-                    <div class="w-9 h-9 bg-emerald-500 rounded-2xl flex items-center justify-center">
-                        <i class="fa-solid fa-wallet text-white text-2xl"></i>
-                    </div>
-                    <span class="font-semibold text-2xl tracking-tighter">ExpenseTracker</span>
-                </div>
-                <div class="hidden md:flex items-center gap-x-1 text-sm">
-                    <a th:href="@{/dashboard}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
-                        <i class="fa-solid fa-chart-line w-4"></i> <span>Дашборд</span>
-                    </a>
-                    <a th:href="@{/expenses}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
-                        <i class="fa-solid fa-receipt w-4"></i> <span>Расходы</span>
-                    </a>
-                    <a th:href="@{/reports}" class="px-4 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
-                        <i class="fa-solid fa-chart-bar w-4"></i> <span>Отчёты</span>
-                    </a>
-                    <a th:href="@{/bank}" class="nav-active px-4 py-2 rounded-2xl flex items-center gap-x-2">
-                        <i class="fa-solid fa-university w-4"></i> <span>Банк</span>
-                    </a>
-                </div>
-            </div>
+
+<nav class="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-lg fixed w-full z-50">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-x-8">
             <div class="flex items-center gap-x-3">
-                <div class="flex items-center gap-x-2 bg-zinc-900 rounded-3xl px-2 py-1.5 pr-5">
-                    <img th:src="@{'https://i.pravatar.cc/32?u=' + ${currentUser.email}}" class="w-8 h-8 rounded-2xl" alt="avatar">
-                    <div class="text-sm font-medium" th:text="${currentUser.firstName}">Иван</div>
+                <div class="w-9 h-9 bg-emerald-500 rounded-2xl flex items-center justify-center">
+                    <i class="fa-solid fa-wallet text-white text-2xl"></i>
                 </div>
-                <a th:href="@{/logout}" class="px-4 py-2 text-sm hover:bg-zinc-900 rounded-2xl flex items-center gap-x-2">
-                    <i class="fa-solid fa-sign-out-alt"></i>
+                <span class="font-semibold text-2xl tracking-tighter">Expense<span class="text-emerald-400">Tracker</span></span>
+            </div>
+
+            <div class="hidden md:flex items-center gap-x-1 text-sm overflow-x-auto">
+                <a th:href="@{/dashboard}" class="px-3 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                    <i class="fa-solid fa-chart-line w-4"></i> <span>Дашборд</span>
+                </a>
+                <a th:href="@{/expenses}" class="px-3 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                    <i class="fa-solid fa-receipt w-4"></i> <span>Расходы</span>
+                </a>
+                <a th:href="@{/reports}" class="px-3 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                    <i class="fa-solid fa-chart-bar w-4"></i> <span>Отчёты</span>
+                </a>
+                <a th:href="@{/budgets}" class="px-3 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                    <i class="fa-solid fa-chart-pie w-4"></i> <span>Бюджеты</span>
+                </a>
+                <a th:href="@{/goals}" class="px-3 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                    <i class="fa-solid fa-bullseye w-4"></i> <span>Цели</span>
+                </a>
+                <a th:href="@{/bank}" class="px-3 py-2 rounded-2xl bg-zinc-800 text-white flex items-center gap-x-2">
+                    <i class="fa-solid fa-building-columns w-4"></i> <span>Банк</span>
+                </a>
+                <a th:href="@{/personality}" class="px-3 py-2 rounded-2xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                    <i class="fa-solid fa-user-astronaut w-4"></i> <span>Личность</span>
                 </a>
             </div>
         </div>
-    </nav>
 
-    <div class="pt-20 max-w-5xl mx-auto px-6 pb-12">
-        <div class="text-center mb-12">
-            <div class="inline-flex items-center gap-x-2 bg-emerald-500/10 text-emerald-400 px-4 py-1 rounded-3xl text-sm mb-4">
-                <i class="fa-solid fa-link"></i>
-                <span>БЕЗОПАСНАЯ ИНТЕГРАЦИЯ</span>
-            </div>
-            <h1 class="text-5xl font-semibold tracking-tighter">Подключи свой банк</h1>
-            <p class="mt-4 text-xl text-zinc-400 max-w-md mx-auto">Автоматически подтягивай транзакции из банка. Никаких ручных вводов.</p>
+        <div class="flex items-center gap-x-3">
+            <a th:href="@{/profile}" class="flex items-center gap-x-2 bg-zinc-900 hover:bg-zinc-800 transition-colors rounded-3xl px-2 py-1.5 pr-5 cursor-pointer">
+                <img th:src="@{'https://i.pravatar.cc/32?u=' + ${currentUser.email}}" class="w-8 h-8 rounded-2xl" alt="avatar">
+                <div class="text-sm font-medium" th:text="${currentUser.firstName}">Имя</div>
+            </a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="px-4 py-2 text-sm hover:bg-zinc-900 rounded-2xl flex items-center gap-x-2 transition-colors">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                </button>
+            </form>
         </div>
+    </div>
+</nav>
 
-        <!-- Connected Status -->
-        <div th:if="${connected}" class="glass border border-emerald-500/30 rounded-3xl p-8 mb-8 flex items-center justify-between">
+<div class="pt-24 max-w-7xl mx-auto px-6 pb-12">
+    <div class="mb-10 text-center">
+        <h1 class="text-4xl font-semibold tracking-tighter">Синхронизация с банками</h1>
+        <p class="text-zinc-400 mt-2 max-w-xl mx-auto">Подключите свой банковский аккаунт для автоматической загрузки операций. Мы используем безопасное 256-битное шифрование.</p>
+    </div>
+
+    <div id="connectedSection" class="hidden mb-12">
+        <h2 class="text-xl font-semibold mb-4 flex items-center gap-x-2">
+            <i class="fa-solid fa-link text-emerald-400"></i> Подключенные аккаунты
+        </h2>
+        <div class="glass border border-emerald-500/30 bg-emerald-500/5 rounded-3xl p-6 flex items-center justify-between">
             <div class="flex items-center gap-x-4">
-                <div class="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center">
-                    <i class="fa-solid fa-check text-white text-3xl"></i>
+                <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center p-2">
+                    <i id="connectedBankIcon" class="fa-solid fa-building-columns text-zinc-900 text-2xl"></i>
                 </div>
                 <div>
-                    <div class="font-semibold text-xl">Банк подключён</div>
-                    <div class="text-emerald-400">Тинькофф Банк • Последняя синхронизация: только что</div>
+                    <div id="connectedBankName" class="font-semibold text-lg text-white">Банк</div>
+                    <div class="text-sm text-emerald-400 flex items-center gap-x-1 mt-0.5">
+                        <i class="fa-solid fa-circle-check"></i> Синхронизировано минуту назад
+                    </div>
                 </div>
             </div>
-            <button onclick="syncBank()" class="px-6 py-3 border border-emerald-500 text-emerald-400 rounded-2xl hover:bg-emerald-500/10 transition-colors flex items-center gap-x-2">
-                <i class="fa-solid fa-sync"></i>
-                <span>Синхронизировать сейчас</span>
+            <button onclick="disconnectBank()" class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 rounded-2xl text-sm font-medium transition-colors text-red-400 hover:text-red-300">
+                Отключить
             </button>
         </div>
-
-        <!-- Bank Selection -->
-        <div class="mb-8">
-            <div class="font-semibold text-xl mb-6 px-1">Выбери свой банк</div>
-            
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Tinkoff -->
-                <div onclick="connectBank('tinkoff')" class="bank-card glass border border-zinc-700 hover:border-emerald-500 rounded-3xl p-8 cursor-pointer group">
-                    <div class="flex items-center gap-x-4">
-                        <div class="w-16 h-16 bg-yellow-400 rounded-2xl flex items-center justify-center text-4xl">🏦</div>
-                        <div>
-                            <div class="font-semibold text-2xl group-hover:text-emerald-400 transition-colors">Тинькофф</div>
-                            <div class="text-xs text-zinc-400">Самый популярный выбор</div>
-                        </div>
-                    </div>
-                    <div class="mt-8 text-sm text-emerald-400 flex items-center gap-x-2">
-                        <span>Подключить</span> 
-                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-                    </div>
-                </div>
-
-                <!-- Sber -->
-                <div onclick="connectBank('sber')" class="bank-card glass border border-zinc-700 hover:border-emerald-500 rounded-3xl p-8 cursor-pointer group">
-                    <div class="flex items-center gap-x-4">
-                        <div class="w-16 h-16 bg-green-600 rounded-2xl flex items-center justify-center text-4xl">🏦</div>
-                        <div>
-                            <div class="font-semibold text-2xl group-hover:text-emerald-400 transition-colors">СберБанк</div>
-                            <div class="text-xs text-zinc-400">Классика России</div>
-                        </div>
-                    </div>
-                    <div class="mt-8 text-sm text-emerald-400 flex items-center gap-x-2">
-                        <span>Подключить</span> 
-                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-                    </div>
-                </div>
-
-                <!-- Alfa -->
-                <div onclick="connectBank('alfa')" class="bank-card glass border border-zinc-700 hover:border-emerald-500 rounded-3xl p-8 cursor-pointer group">
-                    <div class="flex items-center gap-x-4">
-                        <div class="w-16 h-16 bg-red-500 rounded-2xl flex items-center justify-center text-4xl">🏦</div>
-                        <div>
-                            <div class="font-semibold text-2xl group-hover:text-emerald-400 transition-colors">Альфа-Банк</div>
-                            <div class="text-xs text-zinc-400">Премиум-банкинг</div>
-                        </div>
-                    </div>
-                    <div class="mt-8 text-sm text-emerald-400 flex items-center gap-x-2">
-                        <span>Подключить</span> 
-                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Security Info -->
-        <div class="glass border border-zinc-700 rounded-3xl p-8 text-sm text-zinc-400">
-            <div class="flex items-start gap-x-4">
-                <i class="fa-solid fa-shield-halved text-emerald-400 text-2xl mt-1"></i>
-                <div>
-                    <div class="font-semibold text-white">100% безопасно</div>
-                    <div class="mt-1">Мы используем официальные Open Banking API. Твои данные никогда не хранятся на наших серверах. Только чтение транзакций. Банк-уровень шифрования AES-256.</div>
-                    <div class="mt-3 text-xs">Поддерживаемые банки: Тинькофф, Сбер, Альфа, ВТБ, Райффайзен, Газпромбанк</div>
-                </div>
-            </div>
-        </div>
     </div>
 
-    <!-- Success Modal -->
-    <div id="successModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center">
-        <div class="glass border border-emerald-500 rounded-3xl w-full max-w-md mx-4 p-10 text-center">
-            <div class="mx-auto w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center mb-8">
-                <i class="fa-solid fa-check text-white text-5xl"></i>
+    <h2 class="text-xl font-semibold mb-6">Доступные банки Беларуси</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bank-card glass border border-zinc-800 rounded-3xl p-6 cursor-pointer flex flex-col justify-between h-48" onclick="openConnectModal('Беларусбанк', 'text-green-600')">
+            <div class="flex items-center justify-between">
+                <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fa-solid fa-building-columns text-green-600 text-3xl"></i>
+                </div>
+                <div class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-medium rounded-full border border-emerald-500/20">Поддерживается</div>
             </div>
-            
-            <div class="text-3xl font-semibold">Банк успешно подключён!</div>
-            <div class="mt-4 text-zinc-400">Мы нашли <span class="font-semibold text-emerald-400">47 новых транзакций</span> и автоматически добавили их в твои расходы.</div>
-            
-            <div class="mt-8 flex flex-col gap-y-3">
-                <button onclick="goToExpenses()" class="w-full py-3.5 bg-white text-zinc-950 rounded-2xl font-semibold">Посмотреть добавленные расходы</button>
-                <button onclick="closeSuccessModal()" class="w-full py-3.5 border border-zinc-700 rounded-2xl">Закрыть</button>
+            <div>
+                <h3 class="text-xl font-semibold text-white">Беларусбанк</h3>
+                <p class="text-sm text-zinc-400 mt-1">Кредитные и дебетовые карты</p>
             </div>
         </div>
+
+        <div class="bank-card glass border border-zinc-800 rounded-3xl p-6 cursor-pointer flex flex-col justify-between h-48" onclick="openConnectModal('Приорбанк', 'text-yellow-500')">
+            <div class="flex items-center justify-between">
+                <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fa-solid fa-building-columns text-yellow-500 text-3xl"></i>
+                </div>
+                <div class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-medium rounded-full border border-emerald-500/20">Поддерживается</div>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold text-white">Приорбанк</h3>
+                <p class="text-sm text-zinc-400 mt-1">Все типы счетов</p>
+            </div>
+        </div>
+
+        <div class="bank-card glass border border-zinc-800 rounded-3xl p-6 cursor-pointer flex flex-col justify-between h-48" onclick="openConnectModal('Альфа Банк', 'text-red-600')">
+            <div class="flex items-center justify-between">
+                <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fa-solid fa-a text-red-600 text-3xl font-bold"></i>
+                </div>
+                <div class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-medium rounded-full border border-emerald-500/20">API v2</div>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold text-white">Альфа Банк</h3>
+                <p class="text-sm text-zinc-400 mt-1">Мгновенная синхронизация</p>
+            </div>
+        </div>
+
+        <div class="bank-card glass border border-zinc-800 rounded-3xl p-6 cursor-pointer flex flex-col justify-between h-48" onclick="openConnectModal('МТБанк', 'text-red-500')">
+            <div class="flex items-center justify-between">
+                <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fa-solid fa-wallet text-red-500 text-3xl"></i>
+                </div>
+                <div class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-medium rounded-full border border-emerald-500/20">Поддерживается</div>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold text-white">МТБанк</h3>
+                <p class="text-sm text-zinc-400 mt-1">Халва и другие карты</p>
+            </div>
+        </div>
+
+        <div class="bank-card glass border border-zinc-800 rounded-3xl p-6 cursor-pointer flex flex-col justify-between h-48" onclick="openConnectModal('Сбер Банк', 'text-green-500')">
+            <div class="flex items-center justify-between">
+                <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fa-solid fa-leaf text-green-500 text-3xl"></i>
+                </div>
+                <div class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-medium rounded-full border border-emerald-500/20">Поддерживается</div>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold text-white">Сбер Банк</h3>
+                <p class="text-sm text-zinc-400 mt-1">Счета и копилки</p>
+            </div>
+        </div>
+
+        <div class="glass border border-zinc-800 rounded-3xl p-6 flex flex-col justify-center items-center text-center h-48 opacity-60">
+            <div class="w-12 h-12 rounded-full border border-zinc-700 flex items-center justify-center mb-3">
+                <i class="fa-solid fa-ellipsis text-zinc-400"></i>
+            </div>
+            <h3 class="font-medium">Вашего банка нет?</h3>
+            <p class="text-xs text-zinc-400 mt-1">Мы постоянно добавляем новые интеграции</p>
+        </div>
     </div>
+</div>
 
-    <script>
-        function connectBank(bank) {
-            const modal = document.getElementById('successModal');
-            
-            // Simulate loading
-            const btns = document.querySelectorAll('.bank-card');
-            btns.forEach(b => b.style.pointerEvents = 'none');
-            
-            setTimeout(() => {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                
-                // In real app this would call backend
-                console.log('Connected to bank:', bank);
-            }, 1200);
-        }
+<div id="connectModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="glass border border-zinc-700 rounded-3xl w-full max-w-md p-8 relative overflow-hidden">
+        <button onclick="closeModal('connectModal')" class="absolute top-6 right-6 text-zinc-400 hover:text-white">
+            <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
 
-        function closeSuccessModal() {
-            const modal = document.getElementById('successModal');
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-            
-            // Reset pointer events
-            const btns = document.querySelectorAll('.bank-card');
-            btns.forEach(b => b.style.pointerEvents = 'auto');
-        }
+        <div class="text-center" id="connectStep1">
+            <div class="w-20 h-20 mx-auto bg-white rounded-3xl flex items-center justify-center mb-6 shadow-2xl">
+                <i id="modalBankIcon" class="fa-solid fa-building-columns text-4xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-2">Подключение <span id="modalBankName">Банк</span></h3>
+            <p class="text-zinc-400 text-sm mb-8">Вы будете перенаправлены на защищенную страницу авторизации банка.</p>
 
-        function goToExpenses() {
-            window.location.href = '/expenses';
-        }
+            <button onclick="startSync()" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-semibold transition-all shadow-lg shadow-emerald-500/20">
+                Перейти к авторизации
+            </button>
+            <div class="mt-4 text-xs text-zinc-500 flex items-center justify-center gap-x-2">
+                <i class="fa-solid fa-lock"></i> AES-256 Шифрование
+            </div>
+        </div>
 
-        function syncBank() {
-            const btn = event.currentTarget;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Синхронизация...';
-            
-            setTimeout(() => {
-                btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Синхронизировано!';
-                setTimeout(() => {
-                    window.location.reload();
-                }, 800);
-            }, 1500);
+        <div class="text-center hidden" id="connectStep2">
+            <div class="w-20 h-20 mx-auto border-4 border-zinc-800 border-t-emerald-500 rounded-full animate-spin mb-6"></div>
+            <h3 class="text-xl font-bold mb-2">Обмен ключами...</h3>
+            <p class="text-zinc-400 text-sm" id="loadingText">Устанавливаем безопасное соединение с серверами банка</p>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/toast}"></div>
+
+<script>
+    let currentBank = '';
+    let currentIconClass = '';
+
+    function openConnectModal(bankName, iconClass) {
+        currentBank = bankName;
+        currentIconClass = iconClass;
+
+        document.getElementById('modalBankName').innerText = bankName;
+
+        // Настраиваем иконку в модалке
+        const icon = document.getElementById('modalBankIcon');
+        icon.className = `fa-solid ${bankName === 'Альфа Банк' ? 'fa-a' : (bankName === 'Сбер Банк' ? 'fa-leaf' : (bankName === 'МТБанк' ? 'fa-wallet' : 'fa-building-columns'))} ${iconClass} text-4xl`;
+
+        document.getElementById('connectStep1').classList.remove('hidden');
+        document.getElementById('connectStep2').classList.add('hidden');
+
+        const modal = document.getElementById('connectModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }
+
+    function startSync() {
+        // Переключаем UI на загрузку
+        document.getElementById('connectStep1').classList.add('hidden');
+        document.getElementById('connectStep2').classList.remove('hidden');
+
+        const loadingText = document.getElementById('loadingText');
+
+        // Фейковая цепочка шагов
+        setTimeout(() => { loadingText.innerText = "Авторизация прошла успешно..."; }, 1500);
+        setTimeout(() => { loadingText.innerText = "Импорт транзакций..."; }, 3000);
+
+        setTimeout(() => {
+            closeModal('connectModal');
+
+            // Показываем секцию "Подключенные аккаунты"
+            document.getElementById('connectedSection').classList.remove('hidden');
+            document.getElementById('connectedBankName').innerText = currentBank;
+
+            const connectedIcon = document.getElementById('connectedBankIcon');
+            connectedIcon.className = `fa-solid ${currentBank === 'Альфа Банк' ? 'fa-a' : (currentBank === 'Сбер Банк' ? 'fa-leaf' : (currentBank === 'МТБанк' ? 'fa-wallet' : 'fa-building-columns'))} ${currentIconClass} text-2xl`;
+
+            if(typeof showToast === 'function') {
+                showToast(`${currentBank} успешно подключен!`, 'success');
+            } else {
+                alert(`${currentBank} успешно подключен!`);
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 4500);
+    }
+
+    function disconnectBank() {
+        document.getElementById('connectedSection').classList.add('hidden');
+        if(typeof showToast === 'function') {
+            showToast('Интеграция с банком отключена', 'info');
         }
-    </script>
+    }
+</script>
 </body>
 </html>

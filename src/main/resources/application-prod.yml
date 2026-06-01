@@ -1,22 +1,24 @@
 spring:
   datasource:
+    # Используем localhost для запуска прямо из IDEA
+    # При запуске через docker-compose это значение переопределится
     url: jdbc:postgresql://localhost:5432/expense_tracker
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
 
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update          # автоматически создаёт/обновляет таблицы
+      ddl-auto: update
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
-  thymeleaf:
-    encoding: UTF-8
-    cache: false                # удобно при разработке
+thymeleaf:
+  encoding: UTF-8
+  cache: false
 
 logging:
   level:

@@ -11,10 +11,10 @@ public class HomeController {
     @GetMapping("/")
     public String home(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         if (userDetails != null) {
-            // Logged in user -> redirect to dashboard
+            // Если пользователь уже авторизован -> отправляем сразу в дашборд
             return "redirect:/dashboard";
         }
-        // Not logged in -> show beautiful landing page
+        // Если не авторизован -> показываем красивую лендинг страницу
         return "index";
     }
 }

@@ -26,23 +26,6 @@ spring:
       ddl-auto: update
     show-sql: true
 
----
-
-spring:
-  config:
-    activate:
-      on-profile: prod
-  datasource:
-    url: jdbc:postgresql://postgres:5432/expense_tracker
-    driver-class-name: org.postgresql.Driver
-    username: postgres
-    password: postgres
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-
 thymeleaf:
   encoding: UTF-8
 

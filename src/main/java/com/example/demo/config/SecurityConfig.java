@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -24,6 +25,7 @@ public class SecurityConfig {
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
+        // Игнорируем проверку безопасности для статических ресурсов
         return web -> web.ignoring()
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/my-h2-admin/**");
     }
@@ -32,25 +34,27 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        // Явно разрешаем регистрацию и логин
+                        // Открытые пути
                         .requestMatchers("/register", "/login", "/").permitAll()
-                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+                        // Все остальные запросы требуют авторизации
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/expenses", true)   // после логина сразу на расходы
+                        // Перенаправляем на Дашборд после успешного входа
+                        .defaultSuccessUrl("/dashboard", true)
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
+                        // Разрешаем любой запрос на /logout (наши формы используют POST, что безопасно)
+                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
                 )
                 .userDetailsService(customUserDetailsService)
-                // Отключаем frameOptions для H2 (если будешь пользоваться)
+                // Отключаем frameOptions для H2 консоли
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
-                // CSRF отключаем только для H2-консоли
+                // CSRF отключаем только для консоли базы данных
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers("/my-h2-admin/**")
                 );

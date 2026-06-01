@@ -7,89 +7,176 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
         body { font-family: 'Inter', system_ui, sans-serif; }
-        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
         .input-focus { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .input-focus:focus { box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); border-color: #10b981; }
+
+        /* Стили для кастомных радио-кнопок категорий */
+        .category-radio:checked + div {
+            border-color: #10b981;
+            background-color: rgba(16, 185, 129, 0.15);
+            transform: scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2);
+        }
     </style>
 </head>
-<body class="bg-zinc-950 text-zinc-200">
-    <!-- Navigation -->
-    <nav class="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-lg">
-        <div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-x-3">
-                <div class="w-9 h-9 bg-emerald-500 rounded-2xl flex items-center justify-center">
-                    <i class="fa-solid fa-wallet text-white text-2xl"></i>
-                </div>
-                <span class="font-semibold text-2xl tracking-tighter">ExpenseTracker</span>
+<body class="bg-zinc-950 text-zinc-200 min-h-screen flex flex-col">
+<nav class="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-lg">
+    <div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-x-3">
+            <div class="w-9 h-9 bg-emerald-500 rounded-2xl flex items-center justify-center">
+                <i class="fa-solid fa-wallet text-white text-2xl"></i>
             </div>
-            <a th:href="@{/expenses}" class="flex items-center gap-x-2 text-sm hover:text-white text-zinc-400 transition-colors">
-                <i class="fa-solid fa-arrow-left"></i>
-                <span>Назад к расходам</span>
-            </a>
+            <span class="font-semibold text-2xl tracking-tighter">ExpenseTracker</span>
         </div>
-    </nav>
+        <a th:href="@{/expenses}" class="flex items-center gap-x-2 text-sm hover:text-white text-zinc-400 transition-colors bg-zinc-900 px-4 py-2 rounded-full border border-zinc-800 hover:border-zinc-700">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Отмена</span>
+        </a>
+    </div>
+</nav>
 
-    <div class="max-w-xl mx-auto px-6 py-12">
-        <div class="mb-8">
-            <h1 class="text-4xl font-semibold tracking-tighter" th:text="${expense.id != null} ? 'Редактировать расход' : 'Новый расход'">Новый расход</h1>
-            <p class="text-zinc-400 mt-2">Заполните информацию о расходе</p>
+<div class="flex-1 flex items-center justify-center py-12 px-6">
+    <div class="w-full max-w-2xl">
+        <div class="mb-8 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4 border border-emerald-500/20">
+                <i class="fa-solid fa-receipt text-3xl text-emerald-400"></i>
+            </div>
+            <h1 class="text-4xl font-bold tracking-tighter text-white" th:text="${expense.id != null} ? 'Редактировать расход' : 'Новый расход'">Новый расход</h1>
+            <p class="text-zinc-400 mt-2">Укажите сумму, дату и категорию</p>
         </div>
 
-        <div class="glass border border-zinc-800 rounded-3xl p-8">
-            <form th:action="@{/expenses}" th:object="${expense}" method="post" class="space-y-6">
+        <div class="glass rounded-3xl p-8 md:p-10 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+
+            <form th:action="@{/expenses}" th:object="${expense}" method="post" class="space-y-8 relative z-10">
                 <input type="hidden" th:field="*{id}" />
 
                 <div>
-                    <label class="block text-sm font-medium text-zinc-400 mb-2">Дата расхода</label>
-                    <input type="date" th:field="*{date}" required
-                           class="input-focus w-full bg-zinc-900 border border-zinc-700 px-4 py-3.5 rounded-2xl focus:outline-none text-white">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-zinc-400 mb-2">Категория</label>
-                    <select th:field="*{category}" required class="input-focus w-full bg-zinc-900 border border-zinc-700 px-4 py-3.5 rounded-2xl focus:outline-none text-white">
-                        <option value="Продукты">Продукты</option>
-                        <option value="Транспорт">Транспорт</option>
-                        <option value="Жильё">Жильё</option>
-                        <option value="Развлечения">Развлечения</option>
-                        <option value="Здоровье">Здоровье</option>
-                        <option value="Одежда">Одежда</option>
-                        <option value="Другое">Другое</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-zinc-400 mb-2">Сумма (BYN)</label>
+                    <label class="block text-sm font-medium text-zinc-400 mb-2">Сумма расхода (BYN)</label>
                     <div class="relative">
-                        <input type="number" th:field="*{amount}" step="0.01" min="0.01" required
-                               class="input-focus w-full bg-zinc-900 border border-zinc-700 pl-4 pr-12 py-3.5 rounded-2xl focus:outline-none text-white text-lg font-medium">
-                        <div class="absolute right-5 top-4 text-xl text-zinc-500">BYN</div>
+                        <input type="number" th:field="*{amount}" id="amountInput" step="0.01" min="0.01" required placeholder="0.00"
+                               class="input-focus w-full bg-zinc-900 border border-zinc-700 pl-6 pr-16 py-5 rounded-2xl focus:outline-none text-white text-3xl font-bold placeholder:text-zinc-700">
+                        <div class="absolute right-6 top-6 text-xl font-bold text-zinc-500">BYN</div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        <button type="button" onclick="addAmount(5)" class="px-4 py-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700 text-sm font-medium transition-colors text-zinc-300">+5</button>
+                        <button type="button" onclick="addAmount(10)" class="px-4 py-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700 text-sm font-medium transition-colors text-zinc-300">+10</button>
+                        <button type="button" onclick="addAmount(50)" class="px-4 py-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700 text-sm font-medium transition-colors text-zinc-300">+50</button>
+                        <button type="button" onclick="addAmount(100)" class="px-4 py-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700 text-sm font-medium transition-colors text-zinc-300">+100</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-400 mb-2">Дата</label>
+                        <input type="date" th:field="*{date}" id="dateInput" required
+                               class="input-focus w-full bg-zinc-900 border border-zinc-700 px-4 py-3.5 rounded-2xl focus:outline-none text-white appearance-none cursor-pointer">
+                        <div class="flex gap-2 mt-3">
+                            <button type="button" onclick="setDate(0)" class="flex-1 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-medium transition-colors">Сегодня</button>
+                            <button type="button" onclick="setDate(1)" class="flex-1 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-medium transition-colors">Вчера</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-400 mb-2">Заметка (Необязательно)</label>
+                        <textarea th:field="*{description}" rows="2" placeholder="Например: Поход в кино"
+                                  class="input-focus w-full bg-zinc-900 border border-zinc-700 px-4 py-3.5 rounded-2xl focus:outline-none text-white resize-none"></textarea>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-zinc-400 mb-2">Описание</label>
-                    <textarea th:field="*{description}" rows="3" placeholder="Подробное описание расхода (необязательно)"
-                              class="input-focus w-full bg-zinc-900 border border-zinc-700 px-4 py-3.5 rounded-2xl focus:outline-none text-white resize-y"></textarea>
+                    <label class="block text-sm font-medium text-zinc-400 mb-3">Категория</label>
+                    <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                        <label class="cursor-pointer relative">
+                            <input type="radio" th:field="*{category}" value="Продукты" class="category-radio sr-only" required>
+                            <div class="p-4 rounded-2xl border border-zinc-700 bg-zinc-900 transition-all text-center hover:bg-zinc-800 hover:border-zinc-600">
+                                <i class="fa-solid fa-basket-shopping text-orange-400 text-2xl mb-2"></i>
+                                <div class="text-xs font-medium text-zinc-300">Продукты</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer relative">
+                            <input type="radio" th:field="*{category}" value="Транспорт" class="category-radio sr-only">
+                            <div class="p-4 rounded-2xl border border-zinc-700 bg-zinc-900 transition-all text-center hover:bg-zinc-800 hover:border-zinc-600">
+                                <i class="fa-solid fa-car text-blue-400 text-2xl mb-2"></i>
+                                <div class="text-xs font-medium text-zinc-300">Транспорт</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer relative">
+                            <input type="radio" th:field="*{category}" value="Жильё" class="category-radio sr-only">
+                            <div class="p-4 rounded-2xl border border-zinc-700 bg-zinc-900 transition-all text-center hover:bg-zinc-800 hover:border-zinc-600">
+                                <i class="fa-solid fa-house text-purple-400 text-2xl mb-2"></i>
+                                <div class="text-xs font-medium text-zinc-300">Жильё</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer relative">
+                            <input type="radio" th:field="*{category}" value="Развлечения" class="category-radio sr-only">
+                            <div class="p-4 rounded-2xl border border-zinc-700 bg-zinc-900 transition-all text-center hover:bg-zinc-800 hover:border-zinc-600">
+                                <i class="fa-solid fa-gamepad text-pink-400 text-2xl mb-2"></i>
+                                <div class="text-xs font-medium text-zinc-300">Отдых</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer relative">
+                            <input type="radio" th:field="*{category}" value="Здоровье" class="category-radio sr-only">
+                            <div class="p-4 rounded-2xl border border-zinc-700 bg-zinc-900 transition-all text-center hover:bg-zinc-800 hover:border-zinc-600">
+                                <i class="fa-solid fa-heart-pulse text-red-400 text-2xl mb-2"></i>
+                                <div class="text-xs font-medium text-zinc-300">Здоровье</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer relative">
+                            <input type="radio" th:field="*{category}" value="Одежда" class="category-radio sr-only">
+                            <div class="p-4 rounded-2xl border border-zinc-700 bg-zinc-900 transition-all text-center hover:bg-zinc-800 hover:border-zinc-600">
+                                <i class="fa-solid fa-shirt text-yellow-400 text-2xl mb-2"></i>
+                                <div class="text-xs font-medium text-zinc-300">Одежда</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer relative">
+                            <input type="radio" th:field="*{category}" value="Другое" class="category-radio sr-only">
+                            <div class="p-4 rounded-2xl border border-zinc-700 bg-zinc-900 transition-all text-center hover:bg-zinc-800 hover:border-zinc-600">
+                                <i class="fa-solid fa-box text-zinc-400 text-2xl mb-2"></i>
+                                <div class="text-xs font-medium text-zinc-300">Другое</div>
+                            </div>
+                        </label>
+                    </div>
                 </div>
 
-                <div class="flex gap-x-4 pt-4">
-                    <a th:href="@{/expenses}" 
-                       class="flex-1 py-3.5 text-center border border-zinc-700 hover:bg-zinc-900 rounded-2xl font-medium transition-colors">Отмена</a>
-                    <button type="submit" 
-                            class="flex-1 py-3.5 bg-emerald-600 hover:bg-emerald-500 rounded-2xl font-semibold transition-all flex items-center justify-center gap-x-2">
-                        <span th:text="${expense.id != null} ? 'Сохранить изменения' : 'Добавить расход'">Добавить расход</span>
+                <div class="pt-6 mt-6 border-t border-zinc-800/50">
+                    <button type="submit"
+                            class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 rounded-2xl font-bold transition-all flex items-center justify-center gap-x-2 shadow-lg shadow-emerald-500/20 text-lg">
+                        <span th:text="${expense.id != null} ? 'Сохранить изменения' : 'Добавить расход в базу'">Добавить расход</span>
                         <i class="fa-solid fa-check"></i>
                     </button>
                 </div>
             </form>
         </div>
-
-        <div class="text-center mt-8 text-xs text-zinc-500">
-            Все данные хранятся в зашифрованном виде и доступны только вам
-        </div>
     </div>
+</div>
+
+<script>
+    function addAmount(val) {
+        const input = document.getElementById('amountInput');
+        let current = parseFloat(input.value) || 0;
+        input.value = (current + val).toFixed(2);
+
+        // Маленький эффект пульсации при нажатии
+        input.classList.add('ring-2', 'ring-emerald-500', 'ring-offset-2', 'ring-offset-zinc-950');
+        setTimeout(() => input.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2', 'ring-offset-zinc-950'), 150);
+    }
+
+    function setDate(offsetDays) {
+        const date = new Date();
+        date.setDate(date.getDate() - offsetDays);
+
+        // Форматируем дату в YYYY-MM-DD (с учетом часового пояса)
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+
+        document.getElementById('dateInput').value = `${year}-${month}-${day}`;
+    }
+</script>
 </body>
 </html>

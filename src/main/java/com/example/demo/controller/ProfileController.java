@@ -28,18 +28,28 @@ public class ProfileController {
 
     @GetMapping("/profile")
     public String showProfile(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model) {
-        User user = userDetails.getUser();
+        // Подтягиваем свежие данные из базы, чтобы изменения сразу отражались
+        User user = userRepository.findById(userDetails.getUser().getId())
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
         List<Expense> expenses = expenseRepository.findByUser(user);
 
         BigDecimal totalAmount = expenses.stream()
                 .map(Expense::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        // Ищем дату первого расхода (или ставим сегодня)
+        java.time.LocalDate regDate = expenses.stream()
+                .map(Expense::getDate)
+                .min(java.time.LocalDate::compareTo)
+                .orElse(java.time.LocalDate.now());
+
+        String formattedDate = regDate.format(java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy", new java.util.Locale("ru")));
+
         model.addAttribute("currentUser", user);
         model.addAttribute("expenseCount", expenses.size());
         model.addAttribute("totalAmount", totalAmount);
-        // Дата регистрации пока не хранится в модели — оставляем заглушку или можно добавить позже
-        model.addAttribute("registrationDate", "15 янв 2026");
+        model.addAttribute("registrationDate", formattedDate);
 
         return "profile";
     }
@@ -50,12 +60,16 @@ public class ProfileController {
                                 @RequestParam String lastName,
                                 @RequestParam String email,
                                 RedirectAttributes redirectAttributes) {
-        User user = userDetails.getUser();
+
+        // Обязательно достаем пользователя из БД перед обновлением
+        User user = userRepository.findById(userDetails.getUser().getId())
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
         user.setFirstName(firstName);
         user.setLastName(lastName);
         user.setEmail(email);
         userRepository.save(user);
-        
+
         redirectAttributes.addFlashAttribute("success", "Профиль успешно обновлён!");
         return "redirect:/profile";
     }
@@ -66,27 +80,29 @@ public class ProfileController {
                                  @RequestParam String newPassword,
                                  @RequestParam String confirmPassword,
                                  RedirectAttributes redirectAttributes) {
-        
-        User user = userDetails.getUser();
-        
+
+        // Обязательно достаем пользователя из БД перед обновлением
+        User user = userRepository.findById(userDetails.getUser().getId())
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             redirectAttributes.addFlashAttribute("error", "Текущий пароль неверный");
             return "redirect:/profile";
         }
-        
+
         if (!newPassword.equals(confirmPassword)) {
             redirectAttributes.addFlashAttribute("error", "Пароли не совпадают");
             return "redirect:/profile";
         }
-        
+
         if (newPassword.length() < 6) {
             redirectAttributes.addFlashAttribute("error", "Новый пароль должен быть не менее 6 символов");
             return "redirect:/profile";
         }
-        
+
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
-        
+
         redirectAttributes.addFlashAttribute("success", "Пароль успешно изменён!");
         return "redirect:/profile";
     }
